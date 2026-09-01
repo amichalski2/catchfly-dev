@@ -90,65 +90,67 @@ export function Shell({
 
       <div className="main">
         <Botanical />
-        <header className="main-head">
-          <div>
-            <h1>{title}</h1>
-            {subtitle ? <p className="muted">{subtitle}</p> : null}
-          </div>
-          {/* The rail has no room for it, and it is state the reader needs on
-              every view — so it sits with the page title instead. */}
-          <div className="project-switch">
-            <span className="eyebrow">Project</span>
-            {projects.length > 1 ? (
-              <select
-                value={projectId}
-                onChange={(event) => void switchProject(event.target.value, 'human')}
-              >
-                {projects.map((project) => (
-                  <option key={project.id} value={project.id} title={project.description}>
-                    {project.name}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <strong title={activeProject?.description}>
-                {activeProject?.name ?? 'Devpost Review Console'}
-              </strong>
-            )}
-            {activeProject?.dataOrigin ? (
-              <span className="project-origin">
-                {activeProject.dataOrigin === 'synthetic'
-                  ? account
-                    ? 'Preview · synthetic demo data'
-                    : 'Synthetic demo data'
-                  : activeProject.dataOrigin === 'mixed'
-                    ? 'Measured evals · synthetic traffic'
-                    : 'Measured data'}
+        <div className="shell-topbar">
+          {demoOnly ? (
+            <div className="demo-banner" role="status">
+              <span>
+                <strong>You are looking at synthetic demo data.</strong> Connect your WebMCP app to
+                see what your own agents do.
               </span>
-            ) : null}
-            {account ? (
-              <button
-                type="button"
-                className="linkish shell-signout"
-                title={account.email}
-                onClick={() => void supabase?.auth.signOut()}
-              >
-                Sign out
+              <button type="button" className="btn" onClick={openConnect}>
+                Connect your app
               </button>
-            ) : null}
-          </div>
-        </header>
-        {demoOnly ? (
-          <div className="demo-banner" role="status">
-            <span>
-              <strong>You are looking at synthetic demo data.</strong> Connect your WebMCP app to see
-              what your own agents do.
-            </span>
-            <button type="button" className="btn" onClick={openConnect}>
-              Connect your app
-            </button>
-          </div>
-        ) : null}
+            </div>
+          ) : null}
+          <header className="main-head">
+            <div>
+              <h1>{title}</h1>
+              {subtitle ? <p className="muted">{subtitle}</p> : null}
+            </div>
+            {/* The rail has no room for it, and it is state the reader needs on
+                every view — so it sits with the page title instead. */}
+            <div className="project-switch">
+              <span className="eyebrow">Project</span>
+              {projects.length > 1 ? (
+                <select
+                  value={projectId}
+                  onChange={(event) => void switchProject(event.target.value, 'human')}
+                >
+                  {projects.map((project) => (
+                    <option key={project.id} value={project.id} title={project.description}>
+                      {project.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <strong title={activeProject?.description}>
+                  {activeProject?.name ?? 'Devpost Review Console'}
+                </strong>
+              )}
+              {activeProject?.dataOrigin ? (
+                <span className="project-origin">
+                  {activeProject.dataOrigin === 'synthetic'
+                    ? account
+                      ? 'Preview · synthetic demo data'
+                      : 'Synthetic demo data'
+                    : activeProject.dataOrigin === 'mixed'
+                      ? 'Measured evals · synthetic traffic'
+                      : 'Measured data'}
+                </span>
+              ) : null}
+              {account ? (
+                <button
+                  type="button"
+                  className="linkish shell-signout"
+                  title={account.email}
+                  onClick={() => void supabase?.auth.signOut()}
+                >
+                  Sign out
+                </button>
+              ) : null}
+            </div>
+          </header>
+        </div>
         <SessionStrip />
         <AgentActivity />
         <main className="content">{children}</main>

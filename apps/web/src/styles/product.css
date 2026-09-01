@@ -410,10 +410,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  margin: var(--space-4) 0 0;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-6);
+  border-bottom: 1px solid var(--border-strong);
   background: var(--agent-tint);
   font-size: var(--text-sm);
 }
@@ -424,7 +422,6 @@
 
 @media (max-width: 720px) {
   .demo-banner {
-    flex-direction: column;
-    align-items: flex-start;
+    padding-inline: var(--space-3);
   }
 }
