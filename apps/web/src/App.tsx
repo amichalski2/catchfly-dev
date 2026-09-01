@@ -52,6 +52,8 @@ export default function App() {
   const view = useCatchflyStore((state) => state.view);
   const setView = useCatchflyStore((state) => state.setView);
   const account = useCatchflyStore((state) => state.account);
+  const connectOpen = useCatchflyStore((state) => state.connectOpen);
+  const closeConnect = useCatchflyStore((state) => state.closeConnect);
 
   if (authRequired) return <Auth />;
 
@@ -71,6 +73,8 @@ export default function App() {
     if (account) return <OnboardingWizard />;
     return <Onboarding />;
   }
+
+  if (connectOpen && account) return <OnboardingWizard onClose={closeConnect} />;
 
   if (!ready) {
     return (

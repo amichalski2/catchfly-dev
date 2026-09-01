@@ -11,8 +11,30 @@ import { InstallSnippet } from '../components/InstallSnippet.tsx';
 type Stage = 'setup' | 'provisioning' | 'waiting' | 'connected' | 'failed';
 
 const POLL_MS = 4000;
+const STALL_MS = 60_000;
+const STORAGE_KEY = 'catchfly.onboarding';
+const EXAMPLE_URL = 'https://github.com/amichalski2/catchfly-dev/tree/main/examples/webmcp-vite';
+
+const readSaved = (): ProvisionedWorkspace | null => {
+  try {
+    const raw = window.sessionStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as ProvisionedWorkspace) : null;
+  } catch {
+    return null;
+  }
+};
+
+const save = (workspace: ProvisionedWorkspace | null): void => {
+  try {
+    if (workspace) window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(workspace));
+    else window.sessionStorage.removeItem(STORAGE_KEY);
+  } catch {
+    return;
+  }
+};
 
 const openProject = (projectId: string, view: string) => {
+  save(null);
   window.location.hash = `#/p/${projectId}/${view}`;
   window.location.reload();
 };
@@ -23,10 +45,11 @@ const parseOrigin = (value: string): string => {
   return parsed.origin;
 };
 
-export function OnboardingWizard() {
-  const [stage, setStage] = useState<Stage>('setup');
-  const [workspace, setWorkspace] = useState<ProvisionedWorkspace | null>(null);
+export function OnboardingWizard({ onClose }: { onClose?: () => void } = {}) {
+  const [workspace, setWorkspace] = useState<ProvisionedWorkspace | null>(readSaved);
+  const [stage, setStage] = useState<Stage>(() => (readSaved() ? 'waiting' : 'setup'));
   const [keySeen, setKeySeen] = useState(false);
+  const [stalled, setStalled] = useState(false);
   const [firstSessionId, setFirstSessionId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [appUrl, setAppUrl] = useState('');
@@ -54,7 +77,9 @@ export function OnboardingWizard() {
     setStage('provisioning');
     provisionWorkspace({ allowedOrigins })
       .then((provisioned) => {
+        save(provisioned);
         setWorkspace(provisioned);
+        setStalled(false);
         setStage('waiting');
       })
       .catch((cause) => {
@@ -91,6 +116,12 @@ export function OnboardingWizard() {
     return () => window.clearInterval(timer);
   }, [stage, workspace]);
 
+  useEffect(() => {
+    if (stage !== 'waiting') return;
+    const timer = window.setTimeout(() => setStalled(true), STALL_MS);
+    return () => window.clearTimeout(timer);
+  }, [stage]);
+
   if (stage === 'setup') {
     return (
       <div className="onboarding-shell">
@@ -99,7 +130,8 @@ export function OnboardingWizard() {
           <p className="eyebrow">First project</p>
           <h1>Where does your WebMCP app run?</h1>
           <p className="muted">
-            Catchfly uses this origin to restrict the browser key created for your app.
+            One field. Catchfly creates a project, a production environment and a browser key
+            locked to this origin.
           </p>
           <div className="wizard-setup">
             <label className="field">
@@ -116,24 +148,6 @@ export function OnboardingWizard() {
                 }}
               />
             </label>
-            <label className="field">
-              <span>Other allowed origins (optional)</span>
-              <input
-                type="text"
-                value={additionalOrigins}
-                placeholder="http://localhost:5173, https://preview.example.com"
-                disabled={proxyTelemetry}
-                onChange={(event) => setAdditionalOrigins(event.target.value)}
-              />
-            </label>
-            <label className="signin-remember">
-              <input
-                type="checkbox"
-                checked={proxyTelemetry}
-                onChange={(event) => setProxyTelemetry(event.target.checked)}
-              />
-              My backend will proxy telemetry
-            </label>
             {error ? <p className="import-error">{error}</p> : null}
             <button
               type="button"
@@ -143,7 +157,33 @@ export function OnboardingWizard() {
             >
               Create my workspace
             </button>
+            <details className="wizard-advanced">
+              <summary>Advanced: more origins, or a backend proxy</summary>
+              <label className="field">
+                <span>Other allowed origins</span>
+                <input
+                  type="text"
+                  value={additionalOrigins}
+                  placeholder="http://localhost:5173, https://preview.example.com"
+                  disabled={proxyTelemetry}
+                  onChange={(event) => setAdditionalOrigins(event.target.value)}
+                />
+              </label>
+              <label className="signin-remember">
+                <input
+                  type="checkbox"
+                  checked={proxyTelemetry}
+                  onChange={(event) => setProxyTelemetry(event.target.checked)}
+                />
+                My backend will proxy telemetry, no browser key needed
+              </label>
+            </details>
           </div>
+          {onClose ? (
+            <button type="button" className="linkish wizard-skip" onClick={onClose}>
+              Not yet. Explore the demo first
+            </button>
+          ) : null}
         </section>
       </div>
     );
@@ -290,6 +330,34 @@ VITE_CATCHFLY_APP_VERSION=v1`
           Open your app in a WebMCP-capable browser and invoke one of its tools. Catchfly marks the
           connection ready only after it can build the first complete session.
         </p>
+        {stalled && !keySeen ? (
+          <div className="wizard-checklist">
+            <strong>Nothing has arrived yet. Three things to check:</strong>
+            <ol>
+              <li>
+                The browser you opened your app in supports WebMCP: Chrome Canary or Dev 150+, or
+                the built-in browser of the ChatGPT desktop app. Then call one tool.
+              </li>
+              <li>
+                Your app console shows no <code>[Catchfly]</code> errors. A rejected batch names the
+                field that failed.
+              </li>
+              <li>
+                The page runs on the origin you entered. Add more origins under Sources if your
+                app lives elsewhere.
+              </li>
+            </ol>
+            <a href={EXAMPLE_URL} target="_blank" rel="noreferrer">
+              Compare with the working example integration
+            </a>
+          </div>
+        ) : null}
+        {stalled && keySeen ? (
+          <p className="muted wizard-key-note">
+            Batches reach Catchfly, but no session has completed. A session closes when the tool
+            call finishes and the SDK flushes, so give it a moment or trigger one more tool call.
+          </p>
+        ) : null}
 
         <button
           type="button"

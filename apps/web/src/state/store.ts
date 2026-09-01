@@ -79,6 +79,8 @@ export type CatchflyState = Snapshot & {
   /** The deployment is fine, it just holds no projects yet. */
   isEmpty: boolean;
   authRequired: boolean;
+  demoOnly: boolean;
+  connectOpen: boolean;
   /** The signed-in user, outside Snapshot so neither undo nor an agent can revert it. */
   account: { userId: string; email: string; orgId: string | null; orgName: string | null } | null;
   /** Whether an agent in this browser can reach the page's tools. */
@@ -112,6 +114,9 @@ type Actions = {
   failToLoad: (message: string) => void;
   markEmpty: () => void;
   requireAuth: () => void;
+  setDemoOnly: (demoOnly: boolean, connectOpen?: boolean) => void;
+  openConnect: () => void;
+  closeConnect: () => void;
   setAccount: (account: CatchflyState['account']) => void;
   setWebMcpStatus: (status: WebMcpStatus) => void;
   /** Records that the active dataset gained a run. */
@@ -208,6 +213,8 @@ export const useCatchflyStore = create<CatchflyStore>((set, get) => {
     loadError: null,
     isEmpty: false,
     authRequired: false,
+    demoOnly: false,
+    connectOpen: false,
     account: null,
     webmcpStatus: 'unsupported',
     datasetVersion: 0,
@@ -237,6 +244,9 @@ export const useCatchflyStore = create<CatchflyStore>((set, get) => {
     markEmpty: () => set({ ready: false, loadError: null, isEmpty: true }),
 
     requireAuth: () => set({ ready: false, loadError: null, isEmpty: false, authRequired: true }),
+    setDemoOnly: (demoOnly, connectOpen = false) => set({ demoOnly, connectOpen: demoOnly && connectOpen }),
+    openConnect: () => set({ connectOpen: true }),
+    closeConnect: () => set({ connectOpen: false }),
     setAccount: (account) => set({ account }),
 
     setWebMcpStatus: (status) => set({ webmcpStatus: status }),

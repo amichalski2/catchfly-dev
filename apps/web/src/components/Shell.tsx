@@ -45,6 +45,8 @@ export function Shell({
   const setView = useCatchflyStore((state) => state.setView);
   const projectId = useCatchflyStore((state) => state.projectId);
   const account = useCatchflyStore((state) => state.account);
+  const demoOnly = useCatchflyStore((state) => state.demoOnly);
+  const openConnect = useCatchflyStore((state) => state.openConnect);
   const activeProject = projectInfo(projectId);
   const projects = listProjectInfo();
 
@@ -52,6 +54,7 @@ export function Shell({
     <div className="shell">
       <aside className="sidebar">
         <img className="brand-mark" src="/brand/catchfly-mark.png" alt="Catchfly" />
+        <div className="sidebar-divider" aria-hidden="true" />
         <nav className="sidebar-primary" aria-label="Product">
           {NAV.map((item) => (
             <button
@@ -135,6 +138,17 @@ export function Shell({
             ) : null}
           </div>
         </header>
+        {demoOnly ? (
+          <div className="demo-banner" role="status">
+            <span>
+              <strong>You are looking at synthetic demo data.</strong> Connect your WebMCP app to see
+              what your own agents do.
+            </span>
+            <button type="button" className="btn" onClick={openConnect}>
+              Connect your app
+            </button>
+          </div>
+        ) : null}
         <SessionStrip />
         <AgentActivity />
         <main className="content">{children}</main>

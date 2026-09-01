@@ -119,8 +119,8 @@ const catchfly = new Catchfly({
   environmentId: 'production',
   apiKey: import.meta.env.VITE_CATCHFLY_INGEST_KEY,
   deployment: {
-    id: import.meta.env.VITE_DEPLOYMENT_ID,
-    appVersionId: import.meta.env.VITE_APP_VERSION,
+    id: import.meta.env.VITE_CATCHFLY_DEPLOYMENT_ID,
+    appVersionId: import.meta.env.VITE_CATCHFLY_APP_VERSION,
   },
 });
 

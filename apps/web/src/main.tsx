@@ -72,8 +72,11 @@ async function boot(): Promise<void> {
       ),
     );
     if (!account.projects.some((project) => project.dataOrigin !== 'synthetic')) {
-      useCatchflyStore.getState().markEmpty();
-      return;
+      if (account.projects.length === 0) {
+        useCatchflyStore.getState().markEmpty();
+        return;
+      }
+      useCatchflyStore.getState().setDemoOnly(true, wantsSignIn);
     }
   } else {
     setProjects(await fetchProjects());

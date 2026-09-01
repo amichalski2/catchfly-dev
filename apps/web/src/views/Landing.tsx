@@ -70,8 +70,8 @@ export function Landing() {
           </div>
 
           <div className="landing-actions">
-            <a className="landing-cta" href={`${WORKSPACE_PATH}?signin`}>
-              Start free
+            <a className="landing-cta" href={WORKSPACE_PATH}>
+              Explore the demo
               <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
                 <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" strokeOpacity="0.45" />
                 <path
@@ -84,8 +84,8 @@ export function Landing() {
                 />
               </svg>
             </a>
-            <a className="landing-cta landing-cta-quiet" href={WORKSPACE_PATH}>
-              Explore the demo
+            <a className="landing-cta landing-cta-quiet" href={`${WORKSPACE_PATH}?signin`}>
+              Connect your app
             </a>
             <a
               className="landing-cta landing-cta-quiet"

@@ -59,6 +59,7 @@ export function Sessions() {
   const touch = useAgentTouch(SESSION_ACTIONS);
   const deployments = useDeployments();
   const list = useSessionList(filters, PAGE_SIZE);
+  const { railRef, streamRef, recent } = useFittedReleases(deployments?.status === 'ready' ? deployments.value.length : 0);
 
   if (!available) {
     return (
@@ -96,11 +97,10 @@ export function Sessions() {
     : null;
 
   const select = (deploymentId: string | undefined) => setSessionFilters({ deploymentId }, 'human');
-  const fitted = useFittedReleases(releases.length);
 
   return (
     <div className="sessions-view">
-      <aside className="session-rail" ref={fitted.railRef}>
+      <aside className="session-rail" ref={railRef}>
         <section className="panel">
           <div className="panel-body">
             <p className="rail-figure">
@@ -138,7 +138,7 @@ export function Sessions() {
               <ReleaseVolume points={releases} selectedId={filters.deploymentId} onSelect={select} />
               <ReleaseList
                 points={releases}
-                recent={fitted.recent}
+                recent={recent}
                 selectedId={filters.deploymentId}
                 onSelect={select}
               />
@@ -147,7 +147,7 @@ export function Sessions() {
         ) : null}
       </aside>
 
-      <section key={touch.key} ref={fitted.streamRef} className={`panel session-stream-panel${touch.className}`}>
+      <section key={touch.key} ref={streamRef} className={`panel session-stream-panel${touch.className}`}>
         <div className="panel-head">
           <div>
             <h2>{scoped ? `Sessions on ${scoped}` : 'The stream'}</h2>
