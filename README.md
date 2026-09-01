@@ -40,7 +40,8 @@ production behavior.
 | Incidents | Which changes hurt both eval success and production outcomes? Do models agree? Is the largest latency spike a real regression or a false lead? |
 | Releases | What changed between two deployments? Which tools lost execution success, and how did their descriptions or schemas change? |
 | Sessions | What did an agent actually call, in what order, with which arguments and result? |
-| Evals | Which cases regressed, where did their trajectories diverge, and did the recovery hold across repeated runs? |
+| Regressions | Which attempts stopped passing between two eval runs, ignoring what was already broken, and in which failure mode? |
+| Cases | What is the suite made of, which cases fail at least once, and where do their trajectories diverge? |
 
 ```mermaid
 flowchart LR
@@ -65,36 +66,54 @@ Catchfly exposes its own workspace through WebMCP. An agent can read incidents,
 compare releases, filter cases, and open the relevant session on the same page the
 developer is viewing.
 
-Human clicks and agent tools call the same store actions. Changes are attributed in
-the interface, and navigation
-tools return the resulting state so the agent can verify what is now on screen.
+Human clicks and agent tools call the same store actions. Every write returns the
+resulting state, the interface attributes the change to the operator who made it, and
+the developer can undo it in one click. The agent learns about that undo on its next
+call and has an `undo_last` tool of its own. Filters an agent sets without a visible
+control show up as removable chips, so nothing on screen is unexplained.
 
 The most consequential workflow is scoped to the session being reviewed. Catchfly can
 prepare an eval case from a production trace, show the exact draft, and save it only
 after explicit approval. The case records its source session, preserving the reason
 the test exists.
 
-To try the site tools, open the deployed workspace in the built-in browser in the
-ChatGPT desktop app. The regular interface continues to work in browsers without
-WebMCP support.
+To try the site tools, open the workspace in a browser that implements WebMCP: Chrome
+Canary or Dev 150 and newer, or the built-in browser of the ChatGPT desktop app. The
+regular interface continues to work in browsers without WebMCP support.
+
+## Three ways in
+
+- **Explore the demo.** The Investigation Lab at `/w/9f2c7a41` needs no account. It is a
+  deterministic, read-only project with release cycles, production-style sessions, eval
+  runs, and a deliberate latency-only false lead.
+- **Connect your app.** Sign in and you land in the same demo with a banner. One field,
+  the URL your WebMCP app runs on, creates a project, a production environment and a
+  browser key. Origins, backend proxies and CI keys can wait until you need them.
+- **Self-host.** Docker Compose with PostgreSQL, one admin secret, optional seed of the
+  Lab. See below.
 
 ## Run Catchfly locally
 
-Catchfly requires Node.js 22 or newer.
+Catchfly requires Node.js 22 or newer and a PostgreSQL database. Any Postgres works:
+a local container, Supabase, Neon.
 
 ```bash
 npm install
-cp .env.example .env
+cp .env.example .env    # PowerShell: Copy-Item .env.example .env
+```
+
+Set `DATABASE_URL` and `DATABASE_URL_UNPOOLED` in `.env`, then create the schema and
+load the Investigation Lab:
+
+```bash
+npm run migrate
+npm run seed
 npm run dev
 ```
 
-On PowerShell, use `Copy-Item .env.example .env`. The template explicitly enables open local mode;
-Internet-facing deployments should set `CATCHFLY_AUTH_MODE=supabase`.
-
-Open [http://localhost:5173/w/9f2c7a41](http://localhost:5173/w/9f2c7a41) to enter
-the bundled Investigation Lab. It contains a deterministic, read-only project with
-release cycles, production-style sessions, eval runs, and a deliberate latency-only
-false lead.
+Open [http://localhost:5173/w/9f2c7a41](http://localhost:5173/w/9f2c7a41). Without a
+database the workspace cannot load its projects and says so; without the seed a fresh
+database greets you with the first-project form instead of the Lab.
 
 Useful development commands:
 
@@ -102,13 +121,18 @@ Useful development commands:
 npm run build       # typecheck and build the packages and web app
 npm run smoke       # run the offline contract and data checks
 npm run lint        # run oxlint
-npm run mock        # validate the synthetic investigation world
+npm run migrate     # apply pending SQL migrations
+npm run seed        # load the synthetic Investigation Lab
 ```
 
 ## Connect a WebMCP app
 
-Create a project and runtime key in `Project settings → Connection`, then add the
-Catchfly SDK to the application that executes your WebMCP tools.
+Sign in and click **Connect your app**. The wizard asks for the URL your app runs on
+and hands back a publishable ingest key with a ready snippet. `Project settings →
+Connection` is where you mint further keys, add origins or set up a backend proxy
+later.
+
+Add the Catchfly SDK to the application that executes your WebMCP tools:
 
 ```ts
 import { Catchfly, instrumentWebMCP } from '@catchfly/sdk';
@@ -126,6 +150,17 @@ const catchfly = new Catchfly({
 
 instrumentWebMCP(catchfly); // call before registering your WebMCP tools
 ```
+
+Three environment variables carry the configuration:
+
+| Variable | Meaning |
+| --- | --- |
+| `VITE_CATCHFLY_INGEST_KEY` | The publishable key from the wizard. It can write telemetry and nothing else. |
+| `VITE_CATCHFLY_DEPLOYMENT_ID` | Identifies one deploy of your app. Sessions are grouped by it. |
+| `VITE_CATCHFLY_APP_VERSION` | The app version, i.e. the tool manifest, that deploy served. This is the join between production traces and eval runs, so both fields are required. |
+
+The [`examples/webmcp-vite`](./examples/webmcp-vite) app is a complete, working
+integration to compare against.
 
 Automatic instrumentation records tool calls but leaves the task outcome unknown. Use the manual
 session API when your application can report a measured success or failure. The SDK batches events
@@ -171,8 +206,15 @@ export CATCHFLY_ADMIN_KEY="replace-with-a-long-random-secret"
 docker compose up --build
 ```
 
-Open [http://localhost:8888/w/9f2c7a41](http://localhost:8888/w/9f2c7a41). The
-container applies pending migrations before it starts. `/health/live` checks the
+The container applies pending migrations before it starts. To load the Investigation
+Lab into the fresh database:
+
+```bash
+docker compose exec catchfly npm run seed
+```
+
+Open [http://localhost:8888/w/9f2c7a41](http://localhost:8888/w/9f2c7a41). Without
+the seed you land on the first-project form instead. `/health/live` checks the
 process; `/health/ready` checks PostgreSQL and the migration registry.
 
 The [self-hosting guide](./docs/self-hosting.md) covers secure deployment and
