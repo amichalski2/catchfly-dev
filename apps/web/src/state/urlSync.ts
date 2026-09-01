@@ -11,8 +11,45 @@
  *   #/p/catchfly/overview — the same, in a non-default project
  */
 
+import type { CaseFilters } from '@catchfly/core/queries.ts';
+import type { SessionFilters } from '@catchfly/core/session-types.ts';
+
 import { activateProject, defaultProjectId, projectInfo } from '../data/projects.ts';
 import { catchflyStore, type ViewName } from './store.ts';
+
+const CASE_PREFIX = 'f.';
+const SESSION_PREFIX = 's.';
+
+function encodeFilters(filters: CaseFilters, sessionFilters: SessionFilters): string {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(filters)) {
+    if (value === undefined) continue;
+    params.set(`${CASE_PREFIX}${key}`, Array.isArray(value) ? value.join(',') : String(value));
+  }
+  for (const [key, value] of Object.entries(sessionFilters)) {
+    if (value === undefined) continue;
+    params.set(`${SESSION_PREFIX}${key}`, String(value));
+  }
+  const query = params.toString();
+  return query ? `?${query}` : '';
+}
+
+function decodeFilters(query: string): { filters: CaseFilters; sessionFilters: SessionFilters } {
+  const params = new URLSearchParams(query);
+  const filters: Record<string, unknown> = {};
+  const sessionFilters: Record<string, unknown> = {};
+  for (const [key, value] of params) {
+    if (key.startsWith(CASE_PREFIX)) {
+      const name = key.slice(CASE_PREFIX.length);
+      filters[name] = name === 'caseIds' ? value.split(',').filter(Boolean) : value;
+    } else if (key.startsWith(SESSION_PREFIX)) {
+      sessionFilters[key.slice(SESSION_PREFIX.length)] = value;
+    }
+  }
+  return { filters: filters as CaseFilters, sessionFilters: sessionFilters as SessionFilters };
+}
+
+const sameFilters = (a: object, b: object): boolean => JSON.stringify(a) === JSON.stringify(b);
 
 const VIEWS: ViewName[] = [
   'overview',
@@ -36,20 +73,23 @@ type Selection = {
   selectedToolName: string | null;
 };
 
-function hashFor(view: ViewName, selection: Selection, projectId: string): string {
+type Addressable = Selection & { filters: CaseFilters; sessionFilters: SessionFilters };
+
+function hashFor(view: ViewName, selection: Addressable, projectId: string): string {
   const prefix = projectId && projectId !== defaultProjectId() ? `p/${projectId}/` : '';
+  const query = encodeFilters(selection.filters, selection.sessionFilters);
   if (view === 'case-detail' && selection.selectedCaseId) {
-    return `#/${prefix}cases/${selection.selectedCaseId}`;
+    return `#/${prefix}cases/${selection.selectedCaseId}${query}`;
   }
   if (view === 'session-detail' && selection.selectedSessionId) {
-    return `#/${prefix}sessions/${selection.selectedSessionId}`;
+    return `#/${prefix}sessions/${selection.selectedSessionId}${query}`;
   }
   if (view === 'tool-profile' && selection.selectedToolName) {
     // Tool names are identifiers, but encoding costs nothing and a name with a
     // slash in it would otherwise silently break the route.
-    return `#/${prefix}tools/${encodeURIComponent(selection.selectedToolName)}`;
+    return `#/${prefix}tools/${encodeURIComponent(selection.selectedToolName)}${query}`;
   }
-  return `#/${prefix}${view}`;
+  return `#/${prefix}${view}${query}`;
 }
 
 /**
@@ -62,8 +102,17 @@ function hashFor(view: ViewName, selection: Selection, projectId: string): strin
  */
 let entryHash: string | null = null;
 
+function rawHash(): string {
+  return entryHash ?? window.location.hash;
+}
+
 function parts(): string[] {
-  return (entryHash ?? window.location.hash).replace(/^#\//, '').split('/');
+  return rawHash().replace(/^#\//, '').split('?')[0].split('/');
+}
+
+function query(): string {
+  const index = rawHash().indexOf('?');
+  return index === -1 ? '' : rawHash().slice(index + 1);
 }
 
 /** The project a `#/p/<id>/...` hash names, if any. */
@@ -79,8 +128,20 @@ function readHash(): void {
   const projectId = named && projectInfo(named) ? named : defaultProjectId();
   const [section, identifier] = named ? segments.slice(2) : segments;
 
+  const wanted = decodeFilters(query());
+
   const apply = (): void => {
-    const store = catchflyStore.getState();
+    let store = catchflyStore.getState();
+    if (query()) {
+      if (!sameFilters(store.sessionFilters, wanted.sessionFilters)) {
+        store.setSessionFilters(wanted.sessionFilters, 'human', { reset: true });
+        store = catchflyStore.getState();
+      }
+      if (!sameFilters(store.filters, wanted.filters)) {
+        store.setFilters(wanted.filters, 'human', { reset: true });
+        store = catchflyStore.getState();
+      }
+    }
     if (section === 'cases' && identifier) {
       if (store.selectedCaseId !== identifier) store.openCase(identifier, 'human');
       return;
@@ -141,6 +202,8 @@ export function applyHash(): void {
       state.selectedCaseId === previous.selectedCaseId &&
       state.selectedSessionId === previous.selectedSessionId &&
       state.selectedToolName === previous.selectedToolName &&
+      state.filters === previous.filters &&
+      state.sessionFilters === previous.sessionFilters &&
       state.projectId === previous.projectId
     )
       return;

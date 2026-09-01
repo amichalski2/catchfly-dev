@@ -1,10 +1,6 @@
 /**
  * Application shell: brand, navigation, session strip, view slot.
  *
- * The rail is icon-only, so every entry carries its name in `title` and
- * `aria-label` — the picture is the affordance, the label is still the
- * accessible name.
- *
  * Navigation writes through the same store action the agent's set_dashboard_filters
  * tool uses, with source 'human' — there is deliberately no second path.
  */
@@ -19,12 +15,12 @@ import { AgentActivity } from './AgentActivity.tsx';
 import { Botanical } from './Botanical.tsx';
 import { SessionStrip } from './SessionStrip.tsx';
 
-const NAV: Array<{ view: ViewName; label: string; icon: string }> = [
-  { view: 'overview', label: 'Incidents', icon: '/nav/overview.svg' },
-  { view: 'releases', label: 'Releases', icon: '/nav/releases.svg' },
-  { view: 'regressions', label: 'Regression Explorer', icon: '/nav/regression.svg' },
-  { view: 'sessions', label: 'Sessions', icon: '/nav/sessions.svg' },
-  { view: 'cases', label: 'Cases', icon: '/nav/cases.svg' },
+const NAV: Array<{ view: ViewName; label: string; short: string; icon: string }> = [
+  { view: 'overview', label: 'Incidents', short: 'Incidents', icon: '/nav/overview.svg' },
+  { view: 'releases', label: 'Releases', short: 'Releases', icon: '/nav/releases.svg' },
+  { view: 'regressions', label: 'Regression Explorer', short: 'Regressions', icon: '/nav/regression.svg' },
+  { view: 'sessions', label: 'Sessions', short: 'Sessions', icon: '/nav/sessions.svg' },
+  { view: 'cases', label: 'Cases', short: 'Cases', icon: '/nav/cases.svg' },
 ];
 
 const SETTINGS_VIEWS: ViewName[] = ['sources', 'settings', 'system'];
@@ -68,6 +64,7 @@ export function Shell({
               onClick={() => setView(item.view, 'human')}
             >
               <img src={item.icon} alt="" aria-hidden="true" />
+              <span className="nav-label">{item.short}</span>
             </button>
           ))}
         </nav>
@@ -83,6 +80,7 @@ export function Shell({
             }}
           >
             <img src="/nav/settingsicon.svg" alt="" aria-hidden="true" />
+            <span className="nav-label">Settings</span>
           </button>
         </nav>
       </aside>

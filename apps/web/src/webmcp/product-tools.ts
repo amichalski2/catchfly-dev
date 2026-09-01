@@ -2,7 +2,7 @@ import type { ModelContextTool } from '@catchfly/webmcp/spec.ts';
 
 import { fetchProjectOverview, fetchSourceHealth } from '../data/api.ts';
 import { catchflyStore } from '../state/store.ts';
-import { describeSharedState } from './tools.ts';
+import { SEES_AND_CAN_UNDO, writeResult } from './tools.ts';
 
 export function buildProductTools(): ModelContextTool[] {
   return [
@@ -28,32 +28,38 @@ export function buildProductTools(): ModelContextTool[] {
     },
     {
       name: 'open_sources',
-      title: 'Open data sources',
-      description: 'Open Project settings → Connection so the developer sees runtime and CI setup.',
+      title: 'Open Connection settings',
+      description:
+        'Open Project settings → Connection, where the developer connects runtime telemetry and ' +
+        'CI eval keys. Returns the resulting state.' + SEES_AND_CAN_UNDO,
       inputSchema: { type: 'object', properties: {}, additionalProperties: false },
       execute: async () => {
         catchflyStore.getState().setView('sources', 'agent');
-        return describeSharedState();
+        return writeResult();
       },
     },
     {
       name: 'open_data_settings',
       title: 'Open data settings',
-      description: 'Open the shared data-policy settings. This only navigates; it never changes collection rules.',
+      description:
+        'Open the shared data-policy settings. This only navigates; it never changes collection ' +
+        'rules. Returns the resulting state.' + SEES_AND_CAN_UNDO,
       inputSchema: { type: 'object', properties: {}, additionalProperties: false },
       execute: async () => {
         catchflyStore.getState().setView('settings', 'agent');
-        return describeSharedState();
+        return writeResult();
       },
     },
     {
       name: 'open_system_health',
       title: 'Open system health',
-      description: 'Open the installation health view for database readiness and migration state.',
+      description:
+        'Open the installation health view for database readiness and migration state. ' +
+        'Returns the resulting state.' + SEES_AND_CAN_UNDO,
       inputSchema: { type: 'object', properties: {}, additionalProperties: false },
       execute: async () => {
         catchflyStore.getState().setView('system', 'agent');
-        return describeSharedState();
+        return writeResult();
       },
     },
   ];

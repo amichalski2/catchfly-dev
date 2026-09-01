@@ -12,7 +12,7 @@
  */
 
 import { getDb } from '@catchfly/core/db.ts';
-import { CATEGORY_LABELS } from '@catchfly/core/labels.ts';
+import { CATEGORY_LABELS, formatCount } from '@catchfly/core/labels.ts';
 import { filterCases, groupResults } from '@catchfly/core/queries.ts';
 import { toolEvalProfile } from '@catchfly/core/schema-diff.ts';
 
@@ -103,19 +103,19 @@ export function ToolProfile() {
             tone={measured && measured.successRate < 0.95 ? 'regressed' : 'neutral'}
             caption={
               measured && measured.calls > 0
-                ? `${measured.calls.toLocaleString('en-US')} calls across ${measured.byDeployment.length} deployments`
+                ? `${formatCount(measured.calls)} calls across ${measured.byDeployment.length} deployments`
                 : 'No production traffic has called this tool.'
             }
           />
           <div className="tiles">
             <StatTile
               label="Calls"
-              value={measured ? measured.calls.toLocaleString('en-US') : null}
+              value={measured ? formatCount(measured.calls) : null}
               unmeasuredNote="No session data on this deployment."
             />
             <StatTile
               label="Rejected"
-              value={measured ? measured.errorCalls.toLocaleString('en-US') : null}
+              value={measured ? formatCount(measured.errorCalls) : null}
               unmeasuredNote="No session data on this deployment."
             />
             <StatTile

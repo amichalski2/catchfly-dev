@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { getDb } from '@catchfly/core/db.ts';
+import { formatCount } from '@catchfly/core/labels.ts';
 import type {
   ApiKeyScope,
   EnvironmentKind,
@@ -397,7 +398,7 @@ instrumentWebMCP(catchfly);`,
             aria-hidden="true"
           />
           <span>Evals</span>
-          <strong>{evalsConnected ? `${runCount.toLocaleString()} runs` : 'Waiting for CI'}</strong>
+          <strong>{evalsConnected ? `${formatCount(runCount)} runs` : 'Waiting for CI'}</strong>
         </div>
       </section>
 
@@ -430,7 +431,7 @@ instrumentWebMCP(catchfly);`,
           <div className="panel-head">
             <div>
               <p className="eyebrow">Production</p>
-              <h2>Send traces</h2>
+              <h2>Production connection</h2>
               <p className="muted">Install the SDK once. New sessions appear as they happen.</p>
             </div>
             <span className={`pill ${productionConnected ? 'pill-pass' : 'pill-warn'}`}>
@@ -474,7 +475,7 @@ instrumentWebMCP(catchfly);`,
           <div className="panel-head">
             <div>
               <p className="eyebrow">CI</p>
-              <h2>Run evals</h2>
+              <h2>Eval connection</h2>
               <p className="muted">One command runs the WebMCP suite and sends the result here.</p>
             </div>
             <span className={`pill ${evalsConnected ? 'pill-pass' : 'pill-warn'}`}>

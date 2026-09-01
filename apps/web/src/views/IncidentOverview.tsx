@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { categoryLabel } from '@catchfly/core/labels.ts';
+import {
+  evalsCorroborate,
+  headlineIncidents,
+  incidentDeploymentPair,
+  productionCorroborates,
+} from '@catchfly/core/incidents.ts';
+import { categoryLabel, formatCount, formatPoints } from '@catchfly/core/labels.ts';
 import type {
   IncidentOverview as IncidentOverviewData,
   IncidentSummary,
@@ -15,30 +21,14 @@ import { TopFindings } from '../components/TopFindings.tsx';
 import { fetchIncidentOverview } from '../data/api.ts';
 import { activateComparison } from '../data/load.ts';
 import { useCatchflyStore } from '../state/store.ts';
-import { useAgentTouch } from '../state/useAgentTouch.ts';
 
-const points = (value: number) => `${value >= 0 ? '+' : '−'}${(Math.abs(value) * 100).toFixed(1)} pts`;
-
-const EVAL_THRESHOLD = -0.01;
-const PRODUCTION_THRESHOLD = 0.005;
-
-function evalsConfirm(incident: IncidentSummary): boolean {
-  return incident.kind === 'recovery'
-    ? incident.evalSuccessRateDelta > -EVAL_THRESHOLD
-    : incident.evalSuccessRateDelta < EVAL_THRESHOLD;
-}
-
-function productionConfirms(incident: IncidentSummary): boolean {
-  return incident.kind === 'recovery'
-    ? incident.productionFailureRateDelta < -PRODUCTION_THRESHOLD
-    : incident.productionFailureRateDelta > PRODUCTION_THRESHOLD;
-}
+const points = (value: number) => formatPoints(value * 100);
 
 function Corroboration({ incident }: { incident: IncidentSummary }) {
   const models = incident.modelCount > 0 && incident.modelAgreement === incident.modelCount;
   const checks = [
-    { key: 'evals', label: 'Evals', met: evalsConfirm(incident) },
-    { key: 'production', label: 'Production', met: productionConfirms(incident) },
+    { key: 'evals', label: 'Evals', met: evalsCorroborate(incident) },
+    { key: 'production', label: 'Production', met: productionCorroborates(incident) },
     {
       key: 'models',
       label: `Models ${incident.modelAgreement}/${incident.modelCount}`,
@@ -56,12 +46,9 @@ function Corroboration({ incident }: { incident: IncidentSummary }) {
   );
 }
 
-const INCIDENT_ACTIONS = ['set_comparison', 'set_release_comparison'] as const;
-
 export function IncidentOverview() {
   const projectId = useCatchflyStore((state) => state.projectId);
   const setReleaseComparison = useCatchflyStore((state) => state.setReleaseComparison);
-  const touch = useAgentTouch(INCIDENT_ACTIONS);
   const [request, setRequest] = useState<{
     projectId: string;
     data: IncidentOverviewData | null;
@@ -117,22 +104,11 @@ export function IncidentOverview() {
     }
   };
 
-  const deploymentFor = (appVersionId: string): string | null =>
-    data.timeline.find(
-      (point: IncidentTimelinePoint) => point.appVersionId === appVersionId && point.deploymentId,
-    )?.deploymentId ?? null;
-
-  const productionPair = (incident: IncidentSummary) => {
-    const baselineDeploymentId = deploymentFor(incident.baselineVersionId);
-    const candidateDeploymentId = deploymentFor(incident.candidateVersionId);
-    return baselineDeploymentId && candidateDeploymentId
-      ? { baselineDeploymentId, candidateDeploymentId }
-      : null;
-  };
+  const productionPair = (incident: IncidentSummary) => incidentDeploymentPair(incident, data.timeline);
 
   return (
     <div className="stack incident-overview">
-      <section key={touch.key} className={`panel panel-hero${touch.className}`}>
+      <section className="panel panel-hero">
         <div className="panel-body hero-row">
           <HeroFigure
             label="Incident patterns"
@@ -142,15 +118,21 @@ export function IncidentOverview() {
           />
           <div className="tiles">
             <StatTile label="Affected tools" value={String(data.affectedTools)} footnote="root-cause surface" />
-            <StatTile label="Eval attempts" value={data.evalAttempts.toLocaleString()} footnote="across every model" />
-            <StatTile label="Production sessions" value={data.productionSessions.toLocaleString()} footnote="same release history" />
+            <StatTile label="Eval attempts" value={formatCount(data.evalAttempts)} footnote="across every model" />
+            <StatTile label="Production sessions" value={formatCount(data.productionSessions)} footnote="same release history" />
             <StatTile
               label="False lead isolated"
               value={falseLead ? `${falseLead.latencyMultiplier.toFixed(1)}× latency` : '—'}
-              footnote="without quality loss"
+              footnote={falseLead ? 'without quality loss' : 'no false lead in this history'}
             />
           </div>
         </div>
+        <ul className="mark-legend" aria-label="What the marks mean">
+          <li><StatusMark kind="regression" size={14} /> Confirmed regression</li>
+          <li><StatusMark kind="recovery" size={14} /> Recovered</li>
+          <li><StatusMark kind="decoy" size={14} /> False lead</li>
+          <li><StatusMark kind="control" size={14} /> Clean control</li>
+        </ul>
       </section>
 
       <div className="release-row">
@@ -158,6 +140,7 @@ export function IncidentOverview() {
           <div className="panel-head">
             <div>
               <h2>Latest releases</h2>
+              <p className="muted">The newest three, each against the release before it.</p>
             </div>
             <span className="muted release-count">
               {data.timeline.length} releases shipped
@@ -169,6 +152,8 @@ export function IncidentOverview() {
               incidents={data.incidents}
               opening={opening}
               onOpen={(incident) => void open(incident)}
+              productionFor={productionPair}
+              onOpenProduction={(pair) => setReleaseComparison(pair, 'human')}
             />
           </div>
         </section>
@@ -177,6 +162,7 @@ export function IncidentOverview() {
           <div className="panel-head">
             <div>
               <h2>Release history</h2>
+              <p className="muted">Eval success and production failures across every release.</p>
             </div>
           </div>
           <div className="panel-body">
@@ -190,6 +176,9 @@ export function IncidentOverview() {
                 if (incident) void open(incident);
               }}
             />
+            <p className="chart-note">
+              <span className="muted">Select a release with an incident to open its evidence.</span>
+            </p>
           </div>
         </section>
       </div>
@@ -198,14 +187,17 @@ export function IncidentOverview() {
         <div className="panel-head">
           <div>
             <h2>What deserves attention</h2>
+            <p className="muted">Findings ranked by how far evals and production moved together.</p>
           </div>
         </div>
         <div className="panel-body">
         <TopFindings
-          incidents={data.incidents.slice(0, 3)}
+          incidents={headlineIncidents(data)}
           timeline={data.timeline}
           opening={opening}
           onOpen={(incident) => void open(incident)}
+          productionFor={productionPair}
+          onOpenProduction={(pair) => setReleaseComparison(pair, 'human')}
         />
 
         <details className="findings-more">
@@ -228,7 +220,7 @@ export function IncidentOverview() {
                           <span className="incident-tools">{incident.tools.length ? incident.tools.join(', ') : 'multiple tools'}</span>
                           <span className="row-sub">{categoryLabel(incident.failureCategory ?? undefined)}</span>
                         </td>
-                        <td className={evalsConfirm(incident) ? 'col-strong' : ''}>
+                        <td className={evalsCorroborate(incident) ? 'col-strong' : ''}>
                           {points(incident.evalSuccessRateDelta)}
                         </td>
                         <td>

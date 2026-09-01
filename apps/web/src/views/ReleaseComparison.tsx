@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { getDb } from '@catchfly/core/db.ts';
-import { categoryLabel } from '@catchfly/core/labels.ts';
+import { categoryLabel, formatCount, formatPercent, formatPoints, signed } from '@catchfly/core/labels.ts';
 import type { DeploymentComparison } from '@catchfly/core/session-types.ts';
 import type { FailureCategory } from '@catchfly/core/types.ts';
 
@@ -25,9 +25,6 @@ import '../styles/release-comparison.css';
 
 const RELEASE_ACTIONS = ['set_release_comparison'] as const;
 
-const pct = (value: number) => `${(value * 100).toFixed(1)}%`;
-const signedPoints = (value: number) =>
-  `${value > 0 ? '+' : value < 0 ? '−' : ''}${(Math.abs(value) * 100).toFixed(1)} pts`;
 
 const statusFor = (tone: ReturnType<typeof releaseTone>): StatusKind =>
   tone === 'regressed' ? 'regression' : tone === 'fixed' ? 'recovery' : 'control';
@@ -241,24 +238,24 @@ export function ReleaseComparison() {
           <div className="panel-body hero-row">
             <HeroFigure
               label="Failure-rate change"
-              value={signedPoints(rateDelta)}
+              value={formatPoints(rateDelta * 100)}
               tone={tone}
-              caption={`${pct(baselineRate)} → ${pct(candidateRate)} of sessions failed`}
+              caption={`${formatPercent(baselineRate)} → ${formatPercent(candidateRate)} of sessions failed`}
             />
             <div className="tiles">
               <StatTile
                 label="Production sessions"
-                value={comparison.candidate.sessionCount.toLocaleString()}
-                footnote={`${comparison.candidate.failedCount.toLocaleString()} failed · ${comparison.baseline.sessionCount.toLocaleString()} in baseline`}
+                value={formatCount(comparison.candidate.sessionCount)}
+                footnote={`${formatCount(comparison.candidate.failedCount)} failed · ${formatCount(comparison.baseline.sessionCount)} in baseline`}
               />
               <StatTile
                 label="Tool calls"
-                value={comparison.candidate.toolCallCount.toLocaleString()}
-                footnote={`${comparison.candidate.errorCallCount.toLocaleString()} rejected · ${comparison.baseline.toolCallCount.toLocaleString()} in baseline`}
+                value={formatCount(comparison.candidate.toolCallCount)}
+                footnote={`${formatCount(comparison.candidate.errorCallCount)} rejected · ${formatCount(comparison.baseline.toolCallCount)} in baseline`}
               />
               <StatTile
                 label="Tools with changed traffic"
-                value={presentation.toolChanges.length.toLocaleString()}
+                value={formatCount(presentation.toolChanges.length)}
                 footnote={`${manifestChangeCount} changed their manifest`}
               />
             </div>
@@ -283,6 +280,7 @@ export function ReleaseComparison() {
                 gained: entry.delta < 0 ? -entry.delta : 0,
               }))}
               polarity="failures"
+              emptyLabel="No change between these releases."
               onSelect={(category) =>
                 setSessionFilters(
                   {
@@ -303,8 +301,7 @@ export function ReleaseComparison() {
                   failureNet > 0 ? 'tone-regressed' : failureNet < 0 ? 'tone-fixed' : 'muted'
                 }`}
               >
-                {failureNet > 0 ? '+' : failureNet < 0 ? '−' : ''}
-                {Math.abs(failureNet).toLocaleString()} failures net vs baseline
+                {signed(failureNet)} failures net vs baseline
               </span>
             </p>
           </div>
@@ -326,12 +323,15 @@ export function ReleaseComparison() {
                 gained: entry.delta > 0 ? entry.delta : 0,
               }))}
               polarity="traffic"
+              emptyLabel="No change between these releases."
+              limit={6}
+              moreLabel="tools"
               onSelect={(toolName) => openTool(toolName, 'human')}
             />
             <p className="chart-note">
               <span className="muted">Select a tool to open its production and eval profile.</span>
               <span className="chart-net muted">
-                {callsMoved.toLocaleString()} calls changed tools
+                {formatCount(callsMoved)} calls changed tools
               </span>
             </p>
           </div>
@@ -367,12 +367,11 @@ export function ReleaseComparison() {
                       >
                         <code className="release-tool-name">{tool.toolName}</code>
                         <span className="release-tool-calls tabular">
-                          {tool.baselineCalls.toLocaleString()} →{' '}
-                          {tool.candidateCalls.toLocaleString()}
+                          {formatCount(tool.baselineCalls)} → {formatCount(tool.candidateCalls)}
                         </span>
                         <DeltaBadge
                           value={callDelta}
-                          format={(value) => `${value.toLocaleString()} calls`}
+                          format={(value) => `${formatCount(value)} calls`}
                           versus="baseline"
                         />
                         <span
@@ -380,7 +379,7 @@ export function ReleaseComparison() {
                         >
                           {undeclared
                             ? 'never declared — agents invented it'
-                            : `${pct(tool.candidateSuccessRate)} success · ${
+                            : `${formatPercent(tool.candidateSuccessRate)} success · ${
                                 schemaChangeCount > 0
                                   ? `${schemaChangeCount} manifest ${schemaChangeCount === 1 ? 'change' : 'changes'}`
                                   : 'manifest unchanged'

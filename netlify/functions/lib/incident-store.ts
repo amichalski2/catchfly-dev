@@ -250,6 +250,8 @@ async function queryIncidentOverview(projectId: string): Promise<IncidentOvervie
         modelCount: modelDeltas.length,
         baselineVersionId: latest.baseline.appVersionId,
         candidateVersionId: latest.point.appVersionId,
+        baselineDeploymentId: latest.baseline.deploymentId,
+        candidateDeploymentId: latest.point.deploymentId,
         baselineRunId: representative.before.runId,
         candidateRunId: representative.after.runId,
         model: representative.model,

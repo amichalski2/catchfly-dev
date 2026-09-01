@@ -128,16 +128,3 @@
   font-variant-numeric: tabular-nums;
 }
 
-
-.composition-panel .panel-body {
-  padding-bottom: var(--space-7);
-}
-
-.composition-panel .composition-keys {
-  padding-right: 12rem;
-}
-
-.composition-panel .panel-plate {
-  right: 0.75rem;
-  bottom: -1rem;
-}

@@ -4,7 +4,7 @@ import type { ModelContextTool } from '@catchfly/webmcp/spec.ts';
 
 import { fetchIncidentOverview } from '../data/api.ts';
 import { catchflyStore } from '../state/store.ts';
-import { asString, describeSharedState } from './tools.ts';
+import { asOptionalString, SEES_AND_CAN_UNDO, writeResult } from './tools.ts';
 
 export function buildIncidentTools(): ModelContextTool[] {
   return [
@@ -16,8 +16,13 @@ export function buildIncidentTools(): ModelContextTool[] {
         'incidents for this project, each one a manifest change observed across the release ' +
         'history: how far eval success fell, how far the production failure rate rose, how many ' +
         'models agree, how many times it recurred, and the tools it touched. Every incident also ' +
-        'carries the run pair to hand to find_regressions and the app-version pair behind ' +
-        'compare_deployments, so this collapses the first three hops of an investigation. ' +
+        'carries the run pair to hand to find_regressions, the app-version pair, and the ' +
+        'deployment pair (null when that version never served production) to hand to ' +
+        'compare_deployments or open_release_comparison, so this collapses the first three hops ' +
+        'of an investigation. corroboration says whether evals and production each confirm it, ' +
+        'with the same thresholds the dashboard uses. regressionCount is the headline figure; ' +
+        'total also counts decoys and recoveries, and visibleOnScreen lists the incidents the ' +
+        'developer currently sees as cards — the rest are behind an "All findings" fold. ' +
         'An incident of kind "decoy" is a release that looks alarming on latency while quality ' +
         'and completion stay flat — weigh it, do not report it as a regression. Also returns the ' +
         'release timeline, newest last.',
@@ -35,20 +40,20 @@ export function buildIncidentTools(): ModelContextTool[] {
       description:
         'Put two releases side by side on the developer\'s screen: production failure rate, ' +
         'execution success per tool worst-first, the failure-category mix, and the manifest diff ' +
-        'for the worst-hit tools. This is the production counterpart to set_comparison, which ' +
-        'does the same for eval runs. Returns the resulting shared state.',
+        'for the worst-hit tools. Omit both ids to open the two most recent releases, which is ' +
+        'what the developer gets from the navigation. This is the production counterpart to ' +
+        'set_comparison, which does the same for eval runs. From there, set_session_filters with ' +
+        'a category or deploymentId shows the sessions behind a failure mode, and open_tool shows ' +
+        'what a release changed about one tool. Returns the resulting shared state.' + SEES_AND_CAN_UNDO,
       inputSchema: {
         type: 'object',
         properties: {
-          baselineDeploymentId: { type: 'string', description: 'See list_deployments.' },
-          candidateDeploymentId: { type: 'string', description: 'See list_deployments.' },
+          baselineDeploymentId: { type: 'string', description: 'See list_deployments. Defaults to the second-newest release.' },
+          candidateDeploymentId: { type: 'string', description: 'See list_deployments. Defaults to the newest release.' },
         },
-        required: ['baselineDeploymentId', 'candidateDeploymentId'],
         additionalProperties: false,
       },
       execute: async (input) => {
-        const baselineDeploymentId = asString(input, 'baselineDeploymentId');
-        const candidateDeploymentId = asString(input, 'candidateDeploymentId');
         if (!isSessionsAvailable()) {
           throw new Error(
             'This deployment has no production session data, so releases cannot be compared — ' +
@@ -56,6 +61,11 @@ export function buildIncidentTools(): ModelContextTool[] {
           );
         }
         const known = (await sessionsSource().listDeployments()).map((entry) => entry.id);
+        const baselineDeploymentId = asOptionalString(input, 'baselineDeploymentId') ?? known[known.length - 2];
+        const candidateDeploymentId = asOptionalString(input, 'candidateDeploymentId') ?? known[known.length - 1];
+        if (!baselineDeploymentId || !candidateDeploymentId) {
+          throw new Error('Catchfly needs traces from two deployments before releases can be compared.');
+        }
         for (const id of [baselineDeploymentId, candidateDeploymentId]) {
           if (!known.includes(id)) {
             throw new Error(`Unknown deployment "${id}". Known deployments: ${known.join(', ')}`);
@@ -67,7 +77,7 @@ export function buildIncidentTools(): ModelContextTool[] {
         catchflyStore
           .getState()
           .setReleaseComparison({ baselineDeploymentId, candidateDeploymentId }, 'agent');
-        return describeSharedState();
+        return writeResult();
       },
     },
 
@@ -76,11 +86,11 @@ export function buildIncidentTools(): ModelContextTool[] {
       title: 'Close the tool profile',
       description:
         'Close the tool profile and return the developer to the session list. The counterpart to ' +
-        'open_tool, as close_case is to open_case.',
+        'open_tool, as close_case is to open_case. Returns the resulting state.' + SEES_AND_CAN_UNDO,
       inputSchema: { type: 'object', properties: {}, additionalProperties: false },
       execute: async () => {
         catchflyStore.getState().closeTool('agent');
-        return describeSharedState();
+        return writeResult();
       },
     },
   ];

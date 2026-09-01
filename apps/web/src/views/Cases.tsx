@@ -9,6 +9,7 @@
 import { useState } from 'react';
 
 import { getDb } from '@catchfly/core/db.ts';
+import { formatCount } from '@catchfly/core/labels.ts';
 
 import { CaseComposition } from '../components/CaseComposition.tsx';
 import { CaseTable } from '../components/CaseTable.tsx';
@@ -20,9 +21,9 @@ import { useAgentTouch } from '../state/useAgentTouch.ts';
 import { useComparisonEvidence } from '../state/useComparisonEvidence.ts';
 import '../styles/cases.css';
 
-const FILTER_ACTIONS = ['set_filters', 'reset_filters', 'create_segment'] as const;
+const FILTER_ACTIONS = ['set_filters', 'reset_filters'] as const;
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 10;
 
 export function Cases() {
   // Subscribing to datasetVersion re-renders this view after an import; the
@@ -30,7 +31,6 @@ export function Cases() {
   useCatchflyStore((state) => state.datasetVersion);
   const rows = useSelector(visibleCases);
   const filters = useCatchflyStore((state) => state.filters);
-  const segments = useCatchflyStore((state) => state.segments);
   const openCase = useCatchflyStore((state) => state.openCase);
   const setFilters = useCatchflyStore((state) => state.setFilters);
   const setView = useCatchflyStore((state) => state.setView);
@@ -67,30 +67,13 @@ export function Cases() {
 
   return (
     <div className="stack cases-view">
-      <FilterBar resultCount={rows.length} />
-
-      {segments.length > 0 ? (
-        <div className="segments">
-          <span className="eyebrow">Saved segments</span>
-          {segments.map((segment) => (
-            <button
-              key={segment.id}
-              type="button"
-              className="chip chip-button"
-              onClick={() => setFilters(segment.filters, 'human')}
-            >
-              {segment.name}
-              {segment.createdBy === 'agent' ? <span className="who who-agent">Agent</span> : null}
-            </button>
-          ))}
-        </div>
-      ) : null}
+      <FilterBar caseCount={new Set(rows.map((row) => row.caseId)).size} rowCount={rows.length} />
 
       <section className="panel composition-panel">
-        <img className="panel-plate" src="/brand/cards/catalogue.webp" alt="" aria-hidden="true" />
         <div className="panel-head">
           <div>
             <h2>What the suite is made of</h2>
+            <p className="muted">Every case once, by its most frequent failure mode across loaded runs.</p>
           </div>
         </div>
         <div className="panel-body">
@@ -106,6 +89,7 @@ export function Cases() {
         <div className="panel-head">
           <div>
             <h2>The catalogue</h2>
+            <p className="muted">One row per case and run. Open a row to read its attempts.</p>
           </div>
         </div>
         <div className="panel-body">
@@ -115,14 +99,13 @@ export function Cases() {
               a comparison needs them.
             </p>
           ) : null}
-          <CaseTable rows={shown} cap={PAGE_SIZE} onOpenCase={(caseId) => openCase(caseId, 'human')} />
+          <CaseTable rows={shown} onOpenCase={(caseId) => openCase(caseId, 'human')} />
 
           {rows.length > 0 ? (
             <div className="pager">
               <span className="pager-status">
-                {(from + 1).toLocaleString('en-US')}–
-                {Math.min(from + PAGE_SIZE, rows.length).toLocaleString('en-US')} of{' '}
-                {rows.length.toLocaleString('en-US')}
+                {formatCount(from + 1)}–{formatCount(Math.min(from + PAGE_SIZE, rows.length))} of{' '}
+                {formatCount(rows.length)}
               </span>
               <span className="pager-steps">
                 <button

@@ -58,18 +58,6 @@
   border-radius: calc(var(--radius) - 1px) 0 0 calc(var(--radius) - 1px);
 }
 
-.release-choice-plate .status-mark {
-  position: absolute;
-  top: var(--space-2);
-  right: var(--space-2);
-  padding: 4px;
-  background: rgba(255, 253, 249, 0.82);
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-}
-
 .release-choice-body {
   display: flex;
   min-width: 0;
@@ -89,40 +77,11 @@
   flex: 1;
 }
 
-.release-choice-select select {
-  width: 100%;
-  padding: 2px 1.4rem 2px 0;
-  overflow: hidden;
-  appearance: none;
-  -webkit-appearance: none;
-  background: transparent
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23a89a88' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
-    right center no-repeat;
-  border: 0;
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font-family: var(--font-display);
-  font-size: var(--text-base);
-  font-weight: 600;
-  text-overflow: ellipsis;
-  cursor: pointer;
-  transition: color 140ms ease;
-}
-
-.release-choice-select select:hover {
-  color: var(--text-secondary);
-}
-
-.release-choice-select select:focus-visible {
-  outline: 2px solid var(--agent);
-  outline-offset: 2px;
-}
-
 .release-choice-meta {
   margin-top: 3px;
   overflow: hidden;
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -143,7 +102,7 @@
 
 .release-choice-stats dt {
   color: var(--text-muted);
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
 }
 
 .release-choice-stats dd {
@@ -214,7 +173,6 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-5);
-  align-items: stretch;
 }
 
 .release-analysis-panel {
@@ -285,7 +243,7 @@
 }
 
 .release-evidence-index {
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-family: var(--font-display);
   font-size: var(--text-xl);
   line-height: 1;
@@ -299,11 +257,6 @@
 .release-evidence-eyebrow {
   display: block;
   margin-bottom: 2px;
-  color: var(--text-muted);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .release-evidence-step.tone-regressed .release-evidence-eyebrow {
@@ -344,7 +297,7 @@
 
 .release-evidence-metrics dt {
   color: var(--text-muted);
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
 }
 
 .release-evidence-metrics dd {

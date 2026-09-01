@@ -79,10 +79,12 @@ export function CaseField({
       </div>
       <div className="casefield-legend">
         <span className="key">
-          <span className="key-swatch mark mark-lost" /> {regressedCount} regressed
+          <span className="key-swatch mark mark-lost" /> {regressedCount}{' '}
+          {regressedCount === 1 ? 'case' : 'cases'} regressed ({report.regressedAttempts} attempts)
         </span>
         <span className="key">
-          <span className="key-swatch mark mark-gained" /> {recoveredCount} recovered
+          <span className="key-swatch mark mark-gained" /> {recoveredCount}{' '}
+          {recoveredCount === 1 ? 'case' : 'cases'} recovered ({report.fixedAttempts} attempts)
         </span>
         <span className="key">
           <span className="key-swatch casefield-swatch-unchanged" /> {unchangedCount} unchanged

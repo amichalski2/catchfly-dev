@@ -1,11 +1,9 @@
 import { useState } from 'react';
 
+import { formatCount, formatPercent } from '@catchfly/core/labels.ts';
+
+import { shortDate } from './dates.ts';
 import type { ReleasePoint } from './release-points.ts';
-
-const percent = (value: number) => `${(value * 100).toFixed(1)}%`;
-
-const shortDate = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 
 export function ReleaseVolume({
   points,
@@ -57,16 +55,16 @@ export function ReleaseVolume({
         {active ? (
           <>
             <strong>{active.deployment.appVersionId}</strong>{' '}
-            <span className="tabular">{active.deployment.failedCount.toLocaleString('en-US')}</span>{' '}
+            <span className="tabular">{formatCount(active.deployment.failedCount)}</span>{' '}
             of{' '}
-            <span className="tabular">{active.deployment.sessionCount.toLocaleString('en-US')}</span>{' '}
-            failed · {percent(active.failureRate)} ·{' '}
+            <span className="tabular">{formatCount(active.deployment.sessionCount)}</span>{' '}
+            failed · {formatPercent(active.failureRate)} ·{' '}
             <span className="muted">{shortDate(active.deployment.deployedAt)}</span>
           </>
         ) : (
           <span className="muted">
             Failed sessions per release, oldest first · tallest is{' '}
-            <span className="tabular">{ceiling.toLocaleString('en-US')}</span>
+            <span className="tabular">{formatCount(ceiling)}</span>
           </span>
         )}
       </p>

@@ -7,7 +7,8 @@
  * same list end up in the same place.
  */
 
-import { CATEGORY_LABELS } from '@catchfly/core/labels.ts';
+import { getDb } from '@catchfly/core/db.ts';
+import { CATEGORY_LABELS, formatCount } from '@catchfly/core/labels.ts';
 import type { DeploymentRollup, SessionFilters } from '@catchfly/core/session-types.ts';
 import { FAILURE_CATEGORIES } from '@catchfly/core/types.ts';
 
@@ -15,6 +16,14 @@ import { useCatchflyStore } from '../state/store.ts';
 import { useAgentTouch } from '../state/useAgentTouch.ts';
 
 const FILTER_ACTIONS = ['set_session_filters', 'reset_session_filters'] as const;
+
+const HIDDEN_FILTERS: Array<{ key: keyof SessionFilters; label: string }> = [
+  { key: 'environment', label: 'Environment' },
+  { key: 'from', label: 'From' },
+  { key: 'to', label: 'To' },
+];
+
+const TOOL_LIST_ID = 'session-tool-names';
 
 export function SessionFilterBar({
   deployments,
@@ -28,6 +37,14 @@ export function SessionFilterBar({
   const resetSessionFilters = useCatchflyStore((state) => state.resetSessionFilters);
   const touch = useAgentTouch(FILTER_ACTIONS);
   const active = Object.keys(filters).length > 0;
+  const hidden = HIDDEN_FILTERS.filter((entry) => filters[entry.key] !== undefined);
+  const toolNames = [
+    ...new Set(
+      getDb().dataset.project.appVersions.flatMap((version) =>
+        version.toolManifest.map((tool) => tool.name),
+      ),
+    ),
+  ].sort();
 
   return (
     <div key={touch.key} className={`filterbar${touch.className}`}>
@@ -40,7 +57,7 @@ export function SessionFilterBar({
           <option value="">All deployments</option>
           {deployments.map((deployment) => (
             <option key={deployment.id} value={deployment.id}>
-              {deployment.id} · {deployment.appVersionId}
+              {deployment.appVersionId} · {deployment.id}
             </option>
           ))}
         </select>
@@ -67,7 +84,7 @@ export function SessionFilterBar({
       </label>
 
       <label className="field">
-        <span>Failure</span>
+        <span>Failure mode</span>
         <select
           value={filters.category ?? ''}
           onChange={(event) =>
@@ -94,10 +111,18 @@ export function SessionFilterBar({
         <span>Tool called</span>
         <input
           type="search"
+          list={toolNames.length > 0 ? TOOL_LIST_ID : undefined}
           placeholder="Any tool"
           value={filters.toolCalled ?? ''}
           onChange={(event) => setSessionFilters({ toolCalled: event.target.value || undefined }, 'human')}
         />
+        {toolNames.length > 0 ? (
+          <datalist id={TOOL_LIST_ID}>
+            {toolNames.map((name) => (
+              <option key={name} value={name} />
+            ))}
+          </datalist>
+        ) : null}
       </label>
 
       <label className="field field-grow">
@@ -110,19 +135,41 @@ export function SessionFilterBar({
         />
       </label>
 
-      <span className="filterbar-count tabular">
-        {resultCount === null ? '—' : resultCount.toLocaleString('en-US')}{' '}
-        {resultCount === 1 ? 'session' : 'sessions'}
-      </span>
+      <div className="filterbar-tail">
+        <span className="filterbar-count tabular">
+          {resultCount === null ? '—' : formatCount(resultCount)}{' '}
+          {resultCount === 1 ? 'session' : 'sessions'}
+        </span>
 
-      <button
-        type="button"
-        className="btn btn-quiet"
-        onClick={() => resetSessionFilters('human')}
-        disabled={!active}
-      >
-        Clear
-      </button>
+        <button
+          type="button"
+          className="btn btn-quiet"
+          onClick={() => resetSessionFilters('human')}
+          disabled={!active}
+        >
+          Clear
+        </button>
+      </div>
+
+      {hidden.length > 0 ? (
+        <div className="filter-chips" aria-label="Filters set without a control">
+          {hidden.map((entry) => (
+            <button
+              key={entry.key}
+              type="button"
+              className="filter-chip"
+              onClick={() => setSessionFilters({ [entry.key]: undefined }, 'human')}
+              title={`Remove the ${entry.label.toLowerCase()} filter`}
+            >
+              <span className="filter-chip-label">{entry.label}</span>
+              <span className="filter-chip-value">{String(filters[entry.key])}</span>
+              <span className="filter-chip-remove" aria-hidden="true">
+                ×
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

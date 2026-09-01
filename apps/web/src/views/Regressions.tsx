@@ -10,10 +10,11 @@
 import { CaseField } from '../components/CaseField.tsx';
 import { DivergingBars, type DivergingDatum } from '../components/DivergingBars.tsx';
 import { FailureClusters } from '../components/FailureClusters.tsx';
+import { RunPairPicker } from '../components/RunPairPicker.tsx';
 import { DeltaBadge } from '../components/figures.tsx';
 import { StatusMark, type StatusKind } from '../components/StatusMark.tsx';
 import { getAnalysisProvenance } from '@catchfly/core/analysis-db.ts';
-import { categoryLabel } from '@catchfly/core/labels.ts';
+import { categoryLabel, signed } from '@catchfly/core/labels.ts';
 import { activeComparison, activeRegressions, allRuns, useSelector } from '../state/selectors.ts';
 import { useAnalysisEntry } from '../state/useAnalysis.ts';
 import { useCatchflyStore } from '../state/store.ts';
@@ -36,7 +37,7 @@ export function Regressions() {
   const evidence = useComparisonEvidence();
 
   const pinInCases = (next: Parameters<typeof setFilters>[0]) =>
-    setFilters(next, 'human', { view: 'cases' });
+    setFilters(next, 'human', { view: 'cases', reset: true });
 
   if (evidence.error) return <p className="boot-error">Could not load comparison evidence: {evidence.error}</p>;
   if (!evidence.ready) return <section className="panel"><div className="panel-body muted">Loading the two runs behind this comparison…</div></section>;
@@ -112,72 +113,39 @@ export function Regressions() {
 
   return (
     <div className="stack">
-      <div key={touch.key} className={`runlens${touch.className}`}>
-        <label className="runlens-side">
-          <span className="sr-only">Baseline run</span>
-          <select
-            value={baseline.runId}
-            onChange={(event) =>
-              void activateComparison(
-                { baselineRunId: event.target.value, candidateRunId: candidate.runId },
-                'human',
-              )
-            }
-          >
-            {runs.map((run) => (
-              <option
-                key={run.runId}
-                value={run.runId}
-                disabled={run.runId === candidate.runId}
-              >
-                {run.appVersionLabel} · {run.model}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <span className="runlens-arrow" aria-hidden="true">
-          →
-        </span>
-
-        <label className="runlens-side">
-          <span className="sr-only">Candidate run</span>
-          <select
-            value={candidate.runId}
-            onChange={(event) =>
-              void activateComparison(
-                { baselineRunId: baseline.runId, candidateRunId: event.target.value },
-                'human',
-              )
-            }
-          >
-            {runs.map((run) => (
-              <option
-                key={run.runId}
-                value={run.runId}
-                disabled={run.runId === baseline.runId}
-              >
-                {run.appVersionLabel} · {run.model}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <span className="runlens-status">
-          <StatusMark kind={candidateStatus} detail={statusLabel} size={16} />
-          <DeltaBadge
-            value={comparison.delta.successRate}
-            format={(value) => `${(value * 100).toFixed(1)} pts`}
-            versus="baseline"
+      <section key={touch.key} className={`panel release-pair-panel run-pair-panel${touch.className}`}>
+        <div className="panel-head">
+          <div>
+            <h2>Compared runs</h2>
+            <p className="muted">The baseline run and the run being investigated, attempt by attempt.</p>
+          </div>
+          <span className="runlens-status">
+            <StatusMark kind={candidateStatus} detail={statusLabel} size={16} />
+            <DeltaBadge
+              value={comparison.delta.successRate}
+              format={(value) => `${(value * 100).toFixed(1)} pts`}
+              versus="baseline"
+            />
+          </span>
+        </div>
+        <div className="panel-body">
+          <RunPairPicker
+            baseline={baseline}
+            candidate={candidate}
+            runs={runs}
+            candidateStatus={candidateStatus}
+            candidateLabel={statusLabel}
+            onChange={(pair) => void activateComparison(pair, 'human')}
           />
-        </span>
-      </div>
+        </div>
+      </section>
 
       <div className="regress-row">
       <section className="panel casefield-panel">
         <div className="panel-head">
           <div>
             <h2>The case field</h2>
+            <p className="muted">Every case, worst regression first. Open a cell to read the case.</p>
           </div>
         </div>
         <div className="panel-body">
@@ -190,8 +158,7 @@ export function Regressions() {
               {(baseline.metrics.successRate * 100).toFixed(1)}% →{' '}
               {(candidate.metrics.successRate * 100).toFixed(1)}%
               <span className="muted">
-                {' · '}net {regressions.netAttemptDelta >= 0 ? '+' : ''}
-                {regressions.netAttemptDelta} of {candidate.metrics.testCount} attempts
+                {' · '}net {signed(regressions.netAttemptDelta)} of {candidate.metrics.testCount} attempts
               </span>
             </span>
           </p>
@@ -216,7 +183,8 @@ export function Regressions() {
       <section className="panel diverge-panel">
         <div className="panel-head">
           <div>
-            <h2>Lost and recovered by category</h2>
+            <h2>Lost and recovered by failure mode</h2>
+            <p className="muted">Attempts the candidate lost against attempts it recovered.</p>
           </div>
         </div>
         <div className="panel-body">
@@ -230,7 +198,7 @@ export function Regressions() {
             />
           </div>
           <p className="chart-note">
-            <span className="muted">Select a category to open its cases.</span>
+            <span className="muted">Select a failure mode to open its cases.</span>
           </p>
         </div>
       </section>

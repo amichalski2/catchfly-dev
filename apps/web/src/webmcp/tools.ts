@@ -12,6 +12,7 @@
 
 import { getAnalysisEntry, getAnalysisProvenance, whenAnalysisSettled } from '@catchfly/core/analysis-db.ts';
 import { getDb } from '@catchfly/core/db.ts';
+import { getSessionList, isSessionsAvailable } from '@catchfly/core/sessions-db.ts';
 import {
   compareRuns,
   compareTrajectories,
@@ -30,6 +31,7 @@ import { FAILURE_CATEGORIES, type FailureCategory, type Outcome } from '@catchfl
 import { catchflyStore, type ViewName } from '../state/store.ts';
 import { visibleCases } from '../state/selectors.ts';
 import {
+  attemptPayload,
   caseRowPayload,
   clusterPayload,
   regressionPayload,
@@ -173,14 +175,53 @@ const FILTER_PROPERTIES = {
   },
 } as const;
 
+export const SEES_AND_CAN_UNDO = ' The developer sees this immediately and can undo it.';
+
+function runLabel(runId: string): string {
+  const run = getDb().runsById.get(runId);
+  if (!run) return runId;
+  const version = getDb().versionsById.get(run.appVersionId)?.label ?? run.appVersionId;
+  return `${version} · ${run.model}`;
+}
+
+function visibleSessions(): { shown: number; matching: number } | null {
+  if (!isSessionsAvailable()) return null;
+  const list = getSessionList(catchflyStore.getState().sessionFilters);
+  if (!list || list.status !== 'ready') return null;
+  return { shown: list.value.sessions.length, matching: list.value.total };
+}
+
+export function runCoverage(): { coverage?: { loadedRuns: number; totalRuns: number; note: string } } {
+  const runIds = getDb().dataset.runs.map((run) => run.id);
+  const pending = summaryOnlyRuns(runIds).length;
+  if (pending === 0) return {};
+  const loadedRuns = runIds.length - pending;
+  return {
+    coverage: {
+      loadedRuns,
+      totalRuns: runIds.length,
+      note:
+        `Attempts are loaded for ${loadedRuns} of ${runIds.length} runs. The rest are summary-only ` +
+        'and contribute no rows here — find_regressions or compare_trajectories on a run pair loads that pair.',
+    },
+  };
+}
+
 /** What the dashboard currently shows — returned by every write tool as well. */
 export function describeSharedState() {
   const state = catchflyStore.getState();
   const project = getDb().dataset.project;
+  const lastAction = state.lastAction;
   return {
     project: { id: project.id, name: project.name },
     view: state.view,
-    comparison: state.comparison,
+    comparison: state.comparison
+      ? {
+          ...state.comparison,
+          baselineLabel: runLabel(state.comparison.baselineRunId),
+          candidateLabel: runLabel(state.comparison.candidateRunId),
+        }
+      : null,
     releaseComparison: state.releaseComparison,
     filters: state.filters,
     selectedCaseId: state.selectedCaseId,
@@ -191,11 +232,15 @@ export function describeSharedState() {
     selectedSessionId: state.selectedSessionId,
     selectedToolName: state.selectedToolName,
     sessionFilters: state.sessionFilters,
-    segments: state.segments.map((segment) => ({ id: segment.id, name: segment.name })),
-    lastAction: state.lastAction
-      ? { name: state.lastAction.name, source: state.lastAction.source, summary: state.lastAction.summary }
-      : null,
+    visibleSessions: visibleSessions(),
+    undoDepth: state.undoStack.length,
+    revertedByHuman: lastAction?.name === 'undo' && lastAction.source === 'human',
+    lastAction: lastAction ? { name: lastAction.name, source: lastAction.source, summary: lastAction.summary } : null,
   };
+}
+
+export function writeResult<T extends Record<string, unknown>>(extra?: T) {
+  return { ...(extra ?? ({} as T)), state: describeSharedState() };
 }
 
 /**
@@ -226,8 +271,8 @@ export function buildGlobalTools(): ModelContextTool[] {
       title: 'Read the shared screen',
       description:
         'Read what the Catchfly dashboard currently shows: active view, run comparison, filters, ' +
-        'selected case, saved segments, and the last action either operator took. Call this first ' +
-        'to see the state the user is looking at.',
+        'selected case, and the last action either operator took. Call this first ' +
+        'to see the state the developer is looking at.',
       inputSchema: { type: 'object', properties: {}, additionalProperties: false },
       annotations: { readOnlyHint: true },
       execute: async () => describeSharedState(),
@@ -285,7 +330,7 @@ export function buildGlobalTools(): ModelContextTool[] {
       description:
         'Compare two eval runs: success-rate, latency and cost deltas, plus failure counts per ' +
         'category in each run. Purely a read — use set_dashboard_filters or open_case to change ' +
-        'what the user sees.',
+        'what the developer sees.',
       inputSchema: {
         type: 'object',
         properties: { baselineRunId: RUN_ID, candidateRunId: RUN_ID },
@@ -305,8 +350,8 @@ export function buildGlobalTools(): ModelContextTool[] {
       title: 'Find regressions',
       description:
         'Find what got worse between two runs, ignoring failures already present in the baseline. ' +
-        'A regression is a lost passing attempt: a case that passed N of 5 repeats and now passes ' +
-        'fewer. Returns totals, a per-category breakdown, the regressed cases (worst first) and ' +
+        'A regression is a lost passing attempt: a case that passed some of its repeated attempts ' +
+        'and now passes fewer. Returns totals, a per-category breakdown, the regressed cases (worst first) and ' +
         'the cases the candidate fixed.',
       inputSchema: {
         type: 'object',
@@ -326,9 +371,10 @@ export function buildGlobalTools(): ModelContextTool[] {
       name: 'filter_cases',
       title: 'Query cases',
       description:
-        'Query eval cases without changing what the user sees. Returns matching cases with their ' +
-        'pass rates and dominant failure category. To apply the same filters to the shared ' +
-        'dashboard, call set_dashboard_filters.',
+        'Query eval cases without changing what the developer sees. Returns matching cases with their ' +
+        'pass rates and dominant failure category. Only runs whose attempts are loaded contribute ' +
+        'rows; a coverage field says when that is not all of them. To apply the same filters to the ' +
+        'shared dashboard, call set_dashboard_filters.',
       inputSchema: {
         type: 'object',
         properties: FILTER_PROPERTIES,
@@ -339,7 +385,7 @@ export function buildGlobalTools(): ModelContextTool[] {
         const filters = parseFilters(input);
         if (filters.runId) await ensureRunResults([filters.runId]);
         const rows = filterCases(getDb(), filters);
-        return { cases: truncated(rows.map(caseRowPayload)) };
+        return { ...runCoverage(), cases: truncated(rows.map(caseRowPayload)) };
       },
     },
 
@@ -365,7 +411,7 @@ export function buildGlobalTools(): ModelContextTool[] {
         const { groupBy: _ignored, ...rest } = input;
         const filters = Object.keys(rest).length > 0 ? parseFilters(rest) : catchflyStore.getState().filters;
         if (filters.runId) await ensureRunResults([filters.runId]);
-        return { groupBy, groups: groupResults(filterCases(getDb(), filters), groupBy) };
+        return { ...runCoverage(), groupBy, groups: groupResults(filterCases(getDb(), filters), groupBy) };
       },
     },
 
@@ -374,29 +420,26 @@ export function buildGlobalTools(): ModelContextTool[] {
       title: 'Read a case',
       description:
         'Read one eval case: its prompt, the expected tool calls, and per-run results across every ' +
-        'app version and model, including the call sequence of each failing attempt. Purely a ' +
-        'read — use open_case to show the case to the user. If the case is already open, ' +
-        'inspect_selected_case reads the same thing without needing an id.',
+        'app version and model, with every attempt\'s call sequence, arguments, outcome and failure ' +
+        'reason — the same shape inspect_selected_case returns. Purely a read — use open_case to ' +
+        'show the case to the developer. If the case is already open, inspect_selected_case reads ' +
+        'the same thing without needing an id.',
       inputSchema: {
         type: 'object',
-        properties: { caseId: { type: 'string', description: 'A case id. Call filter_cases for the ids in this project.' } },
+        properties: {
+          caseId: { type: 'string', description: 'A case id. Call filter_cases for the ids in this project.' },
+          failingOnly: { type: 'boolean', description: 'Return only the attempts that did not pass.' },
+        },
         required: ['caseId'],
         additionalProperties: false,
       },
       annotations: { readOnlyHint: true },
       execute: async (input) => {
         const detail = getCase(getDb(), asCaseId(input, 'caseId'));
-        const pending = summaryOnlyRuns(getDb().dataset.runs.map((run) => run.id));
+        const failingOnly = input.failingOnly === true;
         return {
           ...visibility(detail.definition.caseId),
-          ...(pending.length > 0
-            ? {
-                note:
-                  `Attempts are loaded for ${detail.runs.length} of ` +
-                  `${getDb().dataset.runs.length} runs. The rest are summary-only — ` +
-                  'find_regressions or compare_trajectories on a run pair loads that pair.',
-              }
-            : {}),
+          ...runCoverage(),
           caseId: detail.definition.caseId,
           name: detail.definition.name,
           prompt: detail.definition.prompt,
@@ -408,15 +451,9 @@ export function buildGlobalTools(): ModelContextTool[] {
             model: run.model,
             passes: run.passes,
             repeats: run.repeats,
-            failingAttempts: run.attempts
-              .filter((attempt) => attempt.outcome !== 'pass')
-              .map((attempt) => ({
-                runIndex: attempt.runIndex,
-                outcome: attempt.outcome,
-                category: attempt.category ?? null,
-                calls: attempt.actualCalls.map((call) => call.functionName),
-                failureReason: attempt.failureReason ?? null,
-              })),
+            attempts: run.attempts
+              .filter((attempt) => !failingOnly || attempt.outcome !== 'pass')
+              .map(attemptPayload),
           })),
         };
       },
@@ -459,8 +496,8 @@ export function buildGlobalTools(): ModelContextTool[] {
         'List the failure clusters for a run comparison: regressed cases grouped by failure ' +
         'category, by where their tool calls diverge from the baseline, and by failure reason. ' +
         'Each cluster carries a deterministic label and summary plus the case ids — hand those ' +
-        'to set_dashboard_filters to show the user one cluster. Defaults to the comparison the ' +
-        'user is currently viewing. Root cause stays explicitly unanalysed.',
+        'to set_dashboard_filters to show the developer one cluster. Defaults to the comparison the ' +
+        'developer is currently viewing. Root cause stays explicitly unanalysed.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -477,7 +514,7 @@ export function buildGlobalTools(): ModelContextTool[] {
         const hasCandidate = input.candidateRunId !== undefined;
         if (hasBaseline !== hasCandidate) {
           throw new Error(
-            'Pass both baselineRunId and candidateRunId, or neither to use the comparison the user is viewing.',
+            'Pass both baselineRunId and candidateRunId, or neither to use the comparison the developer is viewing.',
           );
         }
 
@@ -518,12 +555,24 @@ export function buildGlobalTools(): ModelContextTool[] {
     // --- write tools: these change what the user is looking at ----------
 
     {
+      name: 'undo_last',
+      title: 'Undo the last action',
+      description:
+        'Revert the most recent change to the shared dashboard, whoever made it — the same Undo ' +
+        'button the developer has. Returns undone: false when there is nothing to revert. ' +
+        'The developer sees the reverted state immediately.',
+      inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+      execute: async () => writeResult({ undone: catchflyStore.getState().undoLast('agent') }),
+    },
+
+    {
       name: 'switch_project',
       title: 'Switch project',
       description:
-        'Point the whole shared dashboard at a different project (dataset). Filters, selection ' +
-        'and segments reset, because they reference ids that only exist in the current project. ' +
-        'The user sees the change immediately. Returns the resulting state.',
+        'Point the whole shared dashboard at a different project (dataset). Filters and selection ' +
+        'reset, because they reference ids that only exist in the current project. ' +
+        'The developer sees the change immediately; it cannot be undone, only switched back. ' +
+        'Returns the resulting state.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -534,7 +583,7 @@ export function buildGlobalTools(): ModelContextTool[] {
       },
       execute: async (input) => {
         await activateProject(asString(input, 'projectId'), 'agent');
-        return describeSharedState();
+        return writeResult();
       },
     },
 
@@ -542,10 +591,9 @@ export function buildGlobalTools(): ModelContextTool[] {
       name: 'set_dashboard_filters',
       title: 'Filter the dashboard',
       description:
-        'Change the filters of the shared dashboard — the user sees the case table update ' +
-        'immediately, and can undo it in one click. Only the fields you pass change; pass reset: ' +
+        'Change the filters of the shared dashboard. Only the fields you pass change; pass reset: ' +
         'true to clear everything first. Switching the view away from an open case or session ' +
-        'closes it and revokes its scoped tools. Returns the resulting state.',
+        'closes it and revokes its scoped tools. Returns the resulting state.' + SEES_AND_CAN_UNDO,
       inputSchema: {
         type: 'object',
         properties: {
@@ -562,7 +610,7 @@ export function buildGlobalTools(): ModelContextTool[] {
         catchflyStore
           .getState()
           .setFilters(filters, 'agent', { reset: reset === true, view: targetView });
-        return describeSharedState();
+        return writeResult();
       },
     },
 
@@ -570,8 +618,8 @@ export function buildGlobalTools(): ModelContextTool[] {
       name: 'set_comparison',
       title: 'Change the comparison',
       description:
-        'Point the shared regression view at a different baseline/candidate run pair. The user ' +
-        'sees the regression explorer update. Returns the resulting state.',
+        'Point the shared regression view at a different baseline/candidate run pair. ' +
+        'Returns the resulting state.' + SEES_AND_CAN_UNDO,
       inputSchema: {
         type: 'object',
         properties: { baselineRunId: RUN_ID, candidateRunId: RUN_ID },
@@ -583,7 +631,7 @@ export function buildGlobalTools(): ModelContextTool[] {
           { baselineRunId: asRunId(input, 'baselineRunId'), candidateRunId: asRunId(input, 'candidateRunId') },
           'agent',
         );
-        return describeSharedState();
+        return writeResult();
       },
     },
 
@@ -591,9 +639,9 @@ export function buildGlobalTools(): ModelContextTool[] {
       name: 'open_case',
       title: 'Open a case',
       description:
-        'Open one case in the shared case-detail view, so the user sees it. Selecting a case also ' +
+        'Open one case in the shared case-detail view. Selecting a case also ' +
         'registers case-scoped tools (inspect_selected_case, compare_selected_trajectories, ' +
-        'close_case). Returns the resulting state.',
+        'close_case). Returns the resulting state.' + SEES_AND_CAN_UNDO,
       inputSchema: {
         type: 'object',
         properties: { caseId: { type: 'string', description: 'A case id. Call filter_cases for the ids in this project.' } },
@@ -602,30 +650,7 @@ export function buildGlobalTools(): ModelContextTool[] {
       },
       execute: async (input) => {
         catchflyStore.getState().openCase(asCaseId(input, 'caseId'), 'agent');
-        return describeSharedState();
-      },
-    },
-
-    {
-      name: 'create_segment',
-      title: 'Save a segment',
-      description:
-        'Save the current filters (or the filters you pass) as a named segment the user can ' +
-        'return to. Returns the segment and the resulting state.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          name: { type: 'string', description: 'Short human-readable segment name.' },
-          ...FILTER_PROPERTIES,
-        },
-        required: ['name'],
-        additionalProperties: false,
-      },
-      execute: async (input) => {
-        const { name, ...rest } = input;
-        const filters = Object.keys(rest).length > 0 ? parseFilters(rest) : undefined;
-        const segment = catchflyStore.getState().createSegment(asString({ name }, 'name'), filters, 'agent');
-        return { segment, state: describeSharedState() };
+        return writeResult();
       },
     },
   ];

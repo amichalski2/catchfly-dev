@@ -14,6 +14,7 @@ import { applyHash, projectFromHash, startUrlSync } from './state/urlSync.ts';
 import { initLandingWebMcp, initWebMcp } from './webmcp/index.ts';
 import './styles/base.css';
 import './styles/product.css';
+import './styles/collab.css';
 
 const root = createRoot(document.getElementById('root')!);
 

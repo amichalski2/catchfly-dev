@@ -55,7 +55,7 @@
   align-items: flex-end;
   gap: var(--space-1);
   flex: none;
-  max-width: 16rem;
+  max-width: 20rem;
   text-align: right;
 }
 
@@ -63,28 +63,17 @@
   color: var(--text);
   font-size: var(--text-sm);
   line-height: 1.35;
+  text-wrap: balance;
 }
 
 .project-switch select {
   width: 100%;
   min-width: 12rem;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface-raised);
-  color: var(--text);
-  font: inherit;
-  font-size: var(--text-sm);
-  cursor: pointer;
-}
-
-.project-switch select:hover {
-  border-color: var(--text-faint);
 }
 
 .project-origin {
   width: fit-content;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-size: var(--text-xs);
   line-height: 1.4;
 }
@@ -98,23 +87,41 @@
 
 .sidebar-primary {
   flex: 1;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .sidebar-utility {
   flex: none;
 }
 
-/* Icon-only, so the target is the whole width of the rail rather than the
-   glyph — a 54px picture is not something to ask anyone to hit. */
 .nav-item {
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
   flex: none;
   width: 100%;
-  height: 4.5rem;
+  padding: var(--space-2) 0 var(--space-3);
   border-radius: var(--radius);
   color: var(--text-secondary);
+}
+
+.nav-label {
+  font-size: var(--text-xs);
+  line-height: 1.2;
+  color: var(--text-muted);
+  transition: color 120ms ease;
+}
+
+.nav-item:hover .nav-label,
+.nav-item:focus-visible .nav-label {
+  color: var(--text-secondary);
+}
+
+.nav-item.is-active .nav-label {
+  color: var(--text);
+  font-weight: 600;
 }
 
 /* Resting icons are drained rather than greyed: the plates are drawn in the
@@ -155,16 +162,24 @@
 
 .main {
   position: relative;
-  overflow: hidden;
-  padding: var(--space-6) var(--space-6) var(--space-7);
+  min-width: 0;
+  overflow: clip;
+  padding: 0 var(--space-6) var(--space-7);
 }
 
 .main-head {
+  position: sticky;
+  top: 0;
+  z-index: 4;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-5);
-  margin-bottom: var(--space-4);
+  margin: 0 calc(-1 * var(--space-6)) var(--space-4);
+  padding: var(--space-5) var(--space-6) var(--space-3);
+  background: var(--surface-glass-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
 }
 
 .content {
@@ -391,6 +406,12 @@
   flex: none;
 }
 
+.session-status.is-degraded .session-mark {
+  border-radius: 50%;
+  outline: 2px dashed var(--regressed);
+  outline-offset: 1px;
+}
+
 .session-action {
   display: flex;
   align-items: center;
@@ -506,10 +527,11 @@
   }
 
   .nav-item {
-    width: 4.125rem;
+    width: 5.25rem;
   }
 
   .main-head {
+    position: static;
     flex-direction: column;
     gap: var(--space-3);
   }
@@ -687,12 +709,16 @@
 
   .nav-item {
     width: 3rem;
-    height: 3.25rem;
+    padding: var(--space-1) 0;
   }
 
   .nav-item img {
     width: 2.25rem;
     height: 2.25rem;
+  }
+
+  .nav-label {
+    display: none;
   }
 
   .session {
@@ -726,5 +752,26 @@
 
   .agent-step-error {
     flex-basis: 100%;
+  }
+}
+
+.agent-touched {
+  animation: agent-touch 1.8s ease-out both;
+}
+
+@keyframes agent-touch {
+  from {
+    outline: 2px solid var(--agent);
+    outline-offset: 3px;
+  }
+  to {
+    outline: 2px solid transparent;
+    outline-offset: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-touched {
+    animation: none;
   }
 }

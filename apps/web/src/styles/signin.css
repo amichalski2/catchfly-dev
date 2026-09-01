@@ -95,8 +95,8 @@
 }
 
 .signin-control:focus-within {
-  border-color: var(--signin-rose-soft);
-  box-shadow: 0 0 0 3px rgba(228, 170, 173, 0.28);
+  border-color: var(--text-faint);
+  box-shadow: none;
 }
 
 .signin-control svg {

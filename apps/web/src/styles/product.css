@@ -340,7 +340,7 @@
   line-height: 1.55;
 }
 
-.secret-output { font-family: ui-monospace, monospace; }
+.secret-output { font-family: var(--font-mono); }
 .source-key-list { margin: 18px 0; }
 .source-key-list table { min-width: 760px; }
 
@@ -348,7 +348,7 @@
   width: 100%;
   min-height: 220px;
   resize: vertical;
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   line-height: 1.5;
 }

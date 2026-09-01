@@ -6,30 +6,41 @@
  * indistinguishable from the page doing something on its own.
  */
 
+import { useEffect, useRef, useState } from 'react';
+
 import { agentBusy, pendingCall } from '../state/selectors.ts';
 import { useCatchflyStore } from '../state/store.ts';
 import type { WebMcpStatus } from '@catchfly/webmcp/spec.ts';
 
-const STATUS_COPY: Record<WebMcpStatus, { label: string; detail: string; mark: string }> = {
+const README_URL = 'https://github.com/amichalski2/catchfly-dev#investigate-with-an-agent';
+
+const STATUS_COPY: Record<
+  WebMcpStatus,
+  { label: string; detail: string; mark: string; help: string | null }
+> = {
   active: {
     label: 'Site tools active',
     detail: 'An agent in this browser can read and drive this dashboard.',
     mark: '/brand/status-active.webp',
+    help: null,
   },
   registering: {
     label: 'Site tools registering',
     detail: 'Publishing this page’s tools to the browser — they are not all reachable yet.',
     mark: '/brand/status-active.webp',
+    help: null,
   },
   degraded: {
     label: 'Site tools partly available',
     detail: 'Some tools were refused by this browser. The rest work, so an agent may find gaps.',
     mark: '/brand/status-unsupported.webp',
+    help: 'Reload the page to retry registration. If it repeats, the browser build is limiting the tool count.',
   },
   unsupported: {
     label: 'Site tools unavailable',
     detail: 'This browser has no WebMCP support — the dashboard works normally without it.',
     mark: '/brand/status-unsupported.webp',
+    help: 'WebMCP needs Chrome Canary or Dev 150+ with the WebMCP flag, or the built-in browser of the ChatGPT desktop app.',
   },
 };
 
@@ -42,18 +53,53 @@ export function SessionStrip() {
   const running = useCatchflyStore(pendingCall);
   const copy = STATUS_COPY[status];
   const spinning = busy || status === 'registering';
+  const [open, setOpen] = useState(false);
+  const statusRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (event: MouseEvent | KeyboardEvent) => {
+      if (event instanceof KeyboardEvent && event.key !== 'Escape') return;
+      if (event instanceof MouseEvent && statusRef.current?.contains(event.target as Node)) return;
+      setOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    document.addEventListener('keydown', close);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('keydown', close);
+    };
+  }, [open]);
 
   return (
     <div className="session">
-      <span className={`session-status is-${status}`} title={copy.detail}>
-        <img
-          className={`session-mark${spinning ? ' is-spinning' : ''}`}
-          src={copy.mark}
-          alt=""
-          aria-hidden="true"
-        />
-        {copy.label}
-      </span>
+      <div className="tools-status" ref={statusRef}>
+        <button
+          type="button"
+          className={`session-status tools-status-button is-${status}`}
+          aria-expanded={open}
+          aria-controls="tools-status-popover"
+          onClick={() => setOpen((current) => !current)}
+        >
+          <img
+            className={`session-mark${spinning ? ' is-spinning' : ''}`}
+            src={copy.mark}
+            alt=""
+            aria-hidden="true"
+          />
+          {copy.label}
+          {status === 'degraded' ? <span className="tools-status-flag" aria-hidden="true">!</span> : null}
+        </button>
+        {open ? (
+          <div id="tools-status-popover" className="tools-status-popover" role="dialog" aria-label={copy.label}>
+            <p>{copy.detail}</p>
+            {copy.help ? <p className="muted">{copy.help}</p> : null}
+            <a href={README_URL} target="_blank" rel="noreferrer">
+              How agents work with Catchfly
+            </a>
+          </div>
+        ) : null}
+      </div>
 
       <span className="session-action" role="status" aria-live="polite">
         {running ? (

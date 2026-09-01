@@ -8,7 +8,8 @@
 
 import { AttemptStrip } from '../components/figures.tsx';
 import { TrajectoryDiff } from '../components/TrajectoryDiff.tsx';
-import { categoryLabel } from '@catchfly/core/labels.ts';
+import { CATEGORY_LABELS } from '@catchfly/core/labels.ts';
+import type { FailureCategory } from '@catchfly/core/types.ts';
 import { selectedCase, selectedTrajectory, useSelector } from '../state/selectors.ts';
 import { useCatchflyStore } from '../state/store.ts';
 import { useAgentTouch } from '../state/useAgentTouch.ts';
@@ -19,6 +20,7 @@ export function CaseDetail() {
   const detail = useSelector(selectedCase);
   const trajectory = useSelector(selectedTrajectory);
   const closeCase = useCatchflyStore((state) => state.closeCase);
+  const setView = useCatchflyStore((state) => state.setView);
   const touch = useAgentTouch(SELECTION_ACTIONS);
 
   if (!detail) return <p className="muted">No case selected.</p>;
@@ -43,7 +45,7 @@ export function CaseDetail() {
               <tr>
                 <th scope="col">Run</th>
                 <th scope="col">Model</th>
-                <th scope="col">Failure</th>
+                <th scope="col">Failure modes</th>
                 <th scope="col" className="col-right">
                   Attempts
                 </th>
@@ -51,12 +53,26 @@ export function CaseDetail() {
             </thead>
             <tbody>
               {detail.runs.map((run) => {
-                const failing = run.attempts.find((attempt) => attempt.category);
+                const categories = [
+                  ...new Set(
+                    run.attempts
+                      .map((attempt) => attempt.category)
+                      .filter((category): category is FailureCategory => category !== undefined),
+                  ),
+                ];
                 return (
                   <tr key={run.runId}>
-                    <th scope="row">{run.appVersionLabel}</th>
+                    <th scope="row" title={run.runId}>{run.appVersionLabel}</th>
                     <td>{run.model}</td>
-                    <td>{categoryLabel(failing?.category)}</td>
+                    <td className="col-tools">
+                      {categories.length === 0
+                        ? '—'
+                        : categories.map((category) => (
+                            <span key={category} className="chip">
+                              {CATEGORY_LABELS[category]}
+                            </span>
+                          ))}
+                    </td>
                     <td className="col-right">
                       <AttemptStrip passes={run.passes} repeats={run.repeats} size="md" />
                     </td>
@@ -82,7 +98,21 @@ export function CaseDetail() {
             <TrajectoryDiff comparison={trajectory} />
           </div>
         </section>
-      ) : null}
+      ) : (
+        <section className="panel">
+          <div className="panel-head">
+            <div>
+              <h2>What the model did</h2>
+              <p className="muted">
+                The trajectory diff needs a baseline and a candidate run.
+              </p>
+            </div>
+            <button type="button" className="btn btn-quiet" onClick={() => setView('regressions', 'human')}>
+              Pick two runs
+            </button>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

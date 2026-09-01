@@ -135,7 +135,9 @@
 
   /* An icon rail, not a panel: wide enough for a comfortable target around a
      54px plate and nothing more. */
-  --sidebar-width: 5.5rem;
+  --sidebar-width: 6.5rem;
+  --sticky-top: 6.5rem;
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236d5f54' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   /* Prose wraps for readability; the dashboard itself fills the viewport. */
   --prose-max: 68ch;
 

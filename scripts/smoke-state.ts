@@ -103,12 +103,12 @@ check(
 store.getState().setComparison({ baselineRunId: BASELINE, candidateRunId: CANDIDATE }, 'human');
 
 console.log('\n\x1b[1mundo\x1b[0m');
-store.getState().createSegment('Tool-selection regressions', undefined, 'agent');
-check('segment saved', store.getState().segments.length === 1, store.getState().segments[0]?.name);
-check('segment records its author', store.getState().segments[0]?.createdBy === 'agent');
+store.getState().setFilters({ search: 'undo probe' }, 'agent');
+check('agent filter applied', store.getState().filters.search === 'undo probe');
+check('agent filter records its author', store.getState().lastAction?.source === 'agent');
 
 check('undo reports success', store.getState().undoLast('human') === true);
-check('segment reverted', store.getState().segments.length === 0);
+check('agent filter reverted', store.getState().filters.search === undefined);
 check('undo is attributed too', store.getState().lastAction?.source === 'human');
 
 store.getState().resetFilters('human');

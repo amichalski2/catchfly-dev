@@ -2,6 +2,9 @@
  * Sessions — what agents actually did on the deployed app.
  */
 
+import { useLayoutEffect, useRef, useState } from 'react';
+
+import { formatCount, formatPercent } from '@catchfly/core/labels.ts';
 import { loadMoreSessions } from '@catchfly/core/sessions-db.ts';
 
 import { toReleasePoints } from '../components/release-points.ts';
@@ -17,8 +20,35 @@ import '../styles/sessions.css';
 const SESSION_ACTIONS = ['set_session_filters', 'reset_session_filters', 'open_session'] as const;
 
 const PAGE_SIZE = 10;
+const RECENT_RELEASES = 4;
 
-const pct = (value: number) => `${(value * 100).toFixed(1)}%`;
+function useFittedReleases(total: number) {
+  const railRef = useRef<HTMLElement>(null);
+  const streamRef = useRef<HTMLElement>(null);
+  const [recent, setRecent] = useState(RECENT_RELEASES);
+
+  useLayoutEffect(() => {
+    const rail = railRef.current;
+    const stream = streamRef.current;
+    if (!rail || !stream || total === 0) return;
+    const fit = () => {
+      const row = rail.querySelector<HTMLElement>('.release-lines li');
+      const rowHeight = row?.getBoundingClientRect().height ?? 0;
+      if (rowHeight === 0) return;
+      const slack = stream.getBoundingClientRect().height - rail.getBoundingClientRect().height;
+      setRecent((current) =>
+        Math.max(RECENT_RELEASES, Math.min(total, current + Math.floor(slack / rowHeight))),
+      );
+    };
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(stream);
+    observer.observe(rail);
+    return () => observer.disconnect();
+  }, [total]);
+
+  return { railRef, streamRef, recent };
+}
 
 export function Sessions() {
   const available = useSessionsAvailable();
@@ -66,15 +96,16 @@ export function Sessions() {
     : null;
 
   const select = (deploymentId: string | undefined) => setSessionFilters({ deploymentId }, 'human');
+  const fitted = useFittedReleases(releases.length);
 
   return (
     <div className="sessions-view">
-      <aside className="session-rail">
+      <aside className="session-rail" ref={fitted.railRef}>
         <section className="panel">
           <div className="panel-body">
             <p className="rail-figure">
               <span className="eyebrow">Captured traffic</span>
-              <strong className="tabular">{totals.sessions.toLocaleString('en-US')}</strong>
+              <strong className="tabular">{formatCount(totals.sessions)}</strong>
               <span className="muted">
                 sessions across {releases.length} {releases.length === 1 ? 'release' : 'releases'}
               </span>
@@ -83,13 +114,13 @@ export function Sessions() {
             <dl className="rail-stats">
               <div>
                 <dt>Failed sessions</dt>
-                <dd className="tabular tone-regressed">{pct(failureRate)}</dd>
-                <dd className="muted">{totals.failed.toLocaleString('en-US')} traces</dd>
+                <dd className="tabular tone-regressed">{formatPercent(failureRate)}</dd>
+                <dd className="muted">{formatCount(totals.failed)} traces</dd>
               </div>
               <div>
                 <dt>Tool calls</dt>
-                <dd className="tabular">{totals.calls.toLocaleString('en-US')}</dd>
-                <dd className="muted">{pct(rejectRate)} rejected</dd>
+                <dd className="tabular">{formatCount(totals.calls)}</dd>
+                <dd className="muted">{formatPercent(rejectRate)} rejected</dd>
               </div>
             </dl>
           </div>
@@ -105,13 +136,18 @@ export function Sessions() {
             </div>
             <div className="panel-body">
               <ReleaseVolume points={releases} selectedId={filters.deploymentId} onSelect={select} />
-              <ReleaseList points={releases} selectedId={filters.deploymentId} onSelect={select} />
+              <ReleaseList
+                points={releases}
+                recent={fitted.recent}
+                selectedId={filters.deploymentId}
+                onSelect={select}
+              />
             </div>
           </section>
         ) : null}
       </aside>
 
-      <section key={touch.key} className={`panel session-stream-panel${touch.className}`}>
+      <section key={touch.key} ref={fitted.streamRef} className={`panel session-stream-panel${touch.className}`}>
         <div className="panel-head">
           <div>
             <h2>{scoped ? `Sessions on ${scoped}` : 'The stream'}</h2>
@@ -120,7 +156,7 @@ export function Sessions() {
             </p>
           </div>
           <span className="muted stream-count tabular">
-            {value === null ? '—' : `${value.total.toLocaleString('en-US')} matching`}
+            {value === null ? '—' : `${formatCount(value.total)} matching`}
           </span>
         </div>
 
@@ -148,8 +184,7 @@ export function Sessions() {
             <>
               <SessionStream rows={value.sessions} onOpenSession={(id) => openSession(id, 'human')} />
               <p className="table-foot">
-                Showing {value.sessions.length.toLocaleString('en-US')} of{' '}
-                {value.total.toLocaleString('en-US')}.{' '}
+                Showing {formatCount(value.sessions.length)} of {formatCount(value.total)}.{' '}
                 {value.nextCursor ? (
                   <button
                     type="button"

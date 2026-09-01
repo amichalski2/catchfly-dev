@@ -21,7 +21,7 @@ import type { ModelContextTool } from '@catchfly/webmcp/spec.ts';
 import { ApiError, createCase, readStoredEvalKey } from '../data/api.ts';
 import { invalidateProject } from '../data/load.ts';
 import { catchflyStore } from '../state/store.ts';
-import { asOptionalString, describeSharedState } from './tools.ts';
+import { asOptionalString, SEES_AND_CAN_UNDO, writeResult } from './tools.ts';
 
 async function selectedSession(): Promise<Session> {
   const sessionId = catchflyStore.getState().selectedSessionId;
@@ -151,14 +151,13 @@ export function buildSessionScopedTools(): ModelContextTool[] {
           catchflyStore
             .getState()
             .noteImport(`Created eval case ${saved.caseId} from session ${session.id}`, 'agent');
-          return {
+          return writeResult({
             created: saved,
             hint:
               `The case is stored. It will appear in the case table after the dataset reloads; ` +
               `open_case with caseId "${saved.caseId}" puts it on the developer's screen. ` +
               `Run catchfly eval pull evals.json --project ${projectId} to bring the reviewed suite into CI.`,
-            state: describeSharedState(),
-          };
+          });
         } catch (error) {
           if (error instanceof ApiError && error.status === 401) {
             throw new Error(
@@ -180,11 +179,12 @@ export function buildSessionScopedTools(): ModelContextTool[] {
       title: 'Close the session',
       description:
         'Close the session trace and return the developer to the session list. The ' +
-        'session-scoped tools disappear until a session is opened again. Returns the resulting state.',
+        'session-scoped tools disappear until a session is opened again. Returns the resulting state.' +
+        SEES_AND_CAN_UNDO,
       inputSchema: { type: 'object', properties: {}, additionalProperties: false },
       execute: async () => {
         catchflyStore.getState().closeSession('agent');
-        return describeSharedState();
+        return writeResult();
       },
     },
   ];

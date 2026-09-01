@@ -7,21 +7,36 @@
  */
 
 import { getDb } from '@catchfly/core/db.ts';
-import { CATEGORY_LABELS } from '@catchfly/core/labels.ts';
-import { listAppVersions, listRuns } from '@catchfly/core/queries.ts';
+import { CATEGORY_LABELS, formatCount } from '@catchfly/core/labels.ts';
+import { listAppVersions, listRuns, type CaseFilters } from '@catchfly/core/queries.ts';
 import { FAILURE_CATEGORIES } from '@catchfly/core/types.ts';
+import { summaryOnlyRuns } from '../data/load.ts';
 import { useCatchflyStore } from '../state/store.ts';
 import { useAgentTouch } from '../state/useAgentTouch.ts';
 
-const FILTER_ACTIONS = ['set_filters', 'reset_filters', 'create_segment'] as const;
+const FILTER_ACTIONS = ['set_filters', 'reset_filters'] as const;
 
-export function FilterBar({ resultCount }: { resultCount: number }) {
+const HIDDEN_FILTERS: Array<{ key: keyof CaseFilters; label: string }> = [
+  { key: 'model', label: 'Model' },
+  { key: 'toolCalled', label: 'Tool called' },
+  { key: 'caseIds', label: 'Cases' },
+];
+
+function describe(value: CaseFilters[keyof CaseFilters]): string {
+  if (Array.isArray(value)) return `${formatCount(value.length)} pinned`;
+  return String(value);
+}
+
+export function FilterBar({ caseCount, rowCount }: { caseCount: number; rowCount: number }) {
   const filters = useCatchflyStore((state) => state.filters);
   const setFilters = useCatchflyStore((state) => state.setFilters);
   const resetFilters = useCatchflyStore((state) => state.resetFilters);
   const touch = useAgentTouch(FILTER_ACTIONS);
   const db = getDb();
   const active = Object.keys(filters).length > 0;
+  const runs = listRuns(db);
+  const pending = summaryOnlyRuns(runs.map((run) => run.runId)).length;
+  const hidden = HIDDEN_FILTERS.filter((entry) => filters[entry.key] !== undefined);
 
   return (
     <div key={touch.key} className={`filterbar${touch.className}`}>
@@ -31,9 +46,11 @@ export function FilterBar({ resultCount }: { resultCount: number }) {
           value={filters.runId ?? ''}
           onChange={(event) => setFilters({ runId: event.target.value || undefined }, 'human')}
         >
-          <option value="">All runs</option>
-          {listRuns(db).map((run) => (
-            <option key={run.runId} value={run.runId}>
+          <option value="">
+            {pending > 0 ? `Loaded runs (${runs.length - pending} of ${runs.length})` : 'All runs'}
+          </option>
+          {runs.map((run) => (
+            <option key={run.runId} value={run.runId} title={run.runId}>
               {run.appVersionLabel} · {run.model}
             </option>
           ))}
@@ -58,7 +75,7 @@ export function FilterBar({ resultCount }: { resultCount: number }) {
       </label>
 
       <label className="field">
-        <span>Failure</span>
+        <span>Failure mode</span>
         <select
           value={filters.category ?? ''}
           onChange={(event) =>
@@ -110,18 +127,41 @@ export function FilterBar({ resultCount }: { resultCount: number }) {
         />
       </label>
 
-      <span className="filterbar-count tabular">
-        {resultCount.toLocaleString('en-US')} {resultCount === 1 ? 'case' : 'cases'}
-      </span>
+      <div className="filterbar-tail">
+        <span className="filterbar-count tabular">
+          {formatCount(caseCount)} {caseCount === 1 ? 'case' : 'cases'}
+          {rowCount !== caseCount ? ` · ${formatCount(rowCount)} rows` : ''}
+        </span>
 
-      <button
-        type="button"
-        className="btn btn-quiet"
-        onClick={() => resetFilters('human')}
-        disabled={!active}
-      >
-        Clear
-      </button>
+        <button
+          type="button"
+          className="btn btn-quiet"
+          onClick={() => resetFilters('human')}
+          disabled={!active}
+        >
+          Clear
+        </button>
+      </div>
+
+      {hidden.length > 0 ? (
+        <div className="filter-chips" aria-label="Filters set without a control">
+          {hidden.map((entry) => (
+            <button
+              key={entry.key}
+              type="button"
+              className="filter-chip"
+              onClick={() => setFilters({ [entry.key]: undefined }, 'human')}
+              title={`Remove the ${entry.label.toLowerCase()} filter`}
+            >
+              <span className="filter-chip-label">{entry.label}</span>
+              <span className="filter-chip-value">{describe(filters[entry.key])}</span>
+              <span className="filter-chip-remove" aria-hidden="true">
+                ×
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
