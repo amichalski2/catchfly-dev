@@ -20,7 +20,7 @@ import { createGzip } from 'node:zlib';
 import { handleApi } from '../netlify/functions/lib/router.ts';
 import { authMode } from '../netlify/functions/lib/user-auth.ts';
 
-process.loadEnvFile?.();
+if (existsSync('.env')) process.loadEnvFile?.();
 authMode();
 
 const PORT = Number(process.env.PORT ?? 8888);

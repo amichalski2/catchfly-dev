@@ -32,20 +32,37 @@ function useFittedReleases(total: number) {
     const stream = streamRef.current;
     if (!rail || !stream || total === 0) return;
     const fit = () => {
+      const beside = rail.getBoundingClientRect().right <= stream.getBoundingClientRect().left + 1;
+      if (!beside) {
+        rail.style.setProperty('--session-rail-fill', '0px');
+        if (recent !== RECENT_RELEASES) setRecent(RECENT_RELEASES);
+        return;
+      }
       const row = rail.querySelector<HTMLElement>('.release-lines li');
       const rowHeight = row?.getBoundingClientRect().height ?? 0;
       if (rowHeight === 0) return;
-      const slack = stream.getBoundingClientRect().height - rail.getBoundingClientRect().height;
-      setRecent((current) =>
-        Math.max(RECENT_RELEASES, Math.min(total, current + Math.floor(slack / rowHeight))),
+      const currentFill = Number.parseFloat(
+        rail.style.getPropertyValue('--session-rail-fill'),
+      ) || 0;
+      const naturalRailHeight = rail.getBoundingClientRect().height - currentFill;
+      const slack = stream.getBoundingClientRect().height - naturalRailHeight;
+      const next = Math.max(
+        RECENT_RELEASES,
+        Math.min(total, recent + Math.floor(slack / rowHeight)),
       );
+      if (next !== recent) {
+        rail.style.setProperty('--session-rail-fill', '0px');
+        setRecent(next);
+        return;
+      }
+      rail.style.setProperty('--session-rail-fill', `${Math.max(0, slack)}px`);
     };
     fit();
     const observer = new ResizeObserver(fit);
     observer.observe(stream);
     observer.observe(rail);
     return () => observer.disconnect();
-  }, [total]);
+  }, [recent, total]);
 
   return { railRef, streamRef, recent };
 }

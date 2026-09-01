@@ -24,6 +24,16 @@
   }
 }
 
+@media (max-width: 860px) {
+  .table-scroll > .table {
+    min-width: 52rem;
+  }
+
+  .table-scroll .row-name {
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 620px) {
   .tiles {
     grid-template-columns: minmax(0, 1fr);
@@ -366,6 +376,11 @@
 }
 
 /* --- tables --------------------------------------------------------- */
+
+.table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
 
 .table {
   width: 100%;
@@ -1167,4 +1182,21 @@
   border-radius: var(--radius-sm);
   color: var(--regressed);
   font-size: var(--text-sm);
+}
+
+@media (max-width: 620px) {
+  .diverge-row {
+    grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+    row-gap: 2px;
+  }
+
+  .diverge-label {
+    grid-column: 1 / -1;
+  }
+
+  .diverge-legend {
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    padding-left: 0;
+  }
 }

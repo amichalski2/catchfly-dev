@@ -89,12 +89,19 @@
   line-height: 1.45;
 }
 
-.landing-body {
+.landing-loop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
   margin: 0;
-  max-width: 56ch;
-  color: var(--text-muted);
+  color: var(--text-secondary);
+  font-family: var(--font-display);
   font-size: clamp(0.9375rem, 1vw, 1.0625rem);
-  line-height: 1.6;
+}
+
+.landing-loop > span[aria-hidden] {
+  color: var(--regressed);
 }
 
 .landing-tools {
@@ -135,6 +142,12 @@
   color: var(--text-secondary);
   font-family: var(--font-mono);
   font-size: 0.6875rem;
+}
+
+.landing-tool-badge-github svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  color: var(--text-secondary);
 }
 
 .landing-tool-badge small {
@@ -180,8 +193,7 @@
   filter: none;
 }
 
-.landing-cta:focus-visible,
-.landing-shot-frame:focus-visible {
+.landing-cta:focus-visible {
   outline: 2px solid var(--agent);
   outline-offset: 3px;
 }
@@ -197,28 +209,6 @@
   display: none;
 }
 
-.landing-tagline {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin: 0;
-  color: var(--text-faint);
-  font-family: var(--font-display);
-  font-size: clamp(1rem, 1.15vw, 1.25rem);
-  text-decoration: none;
-  transition: color 140ms ease;
-}
-
-.landing-tagline:hover {
-  color: var(--text-secondary);
-}
-
-.landing-tagline svg {
-  display: block;
-  width: 1.05rem;
-  height: 1.05rem;
-  color: var(--text-secondary);
-}
 
 .landing-shot {
   --landing-slack: max(0px, (100vw - 2 * var(--landing-pad) - 112rem) / 2);
@@ -289,6 +279,13 @@
   color: var(--text-secondary);
   font-family: var(--font-display);
   font-size: var(--text-sm);
+  text-decoration: none;
+}
+
+.landing-built:hover {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .landing-stack {
@@ -400,10 +397,6 @@
     font-size: clamp(1.0625rem, 4.2vw, 1.2rem);
   }
 
-  .landing-body {
-    max-width: 42ch;
-  }
-
   .landing-actions {
     flex-direction: column;
     align-items: stretch;
@@ -421,9 +414,6 @@
     margin-right: 0;
   }
 
-  .landing-tagline {
-    justify-content: center;
-  }
 
   .landing-foot {
     justify-content: center;
@@ -439,7 +429,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .landing-cta,
-  .landing-tagline,
   .landing-tool-badge {
     transition: none;
   }

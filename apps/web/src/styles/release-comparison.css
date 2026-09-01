@@ -552,11 +552,4 @@
     border-left: 0;
   }
 
-  .release-analysis-panel .panel-body {
-    overflow-x: auto;
-  }
-
-  .release-analysis-panel .diverge {
-    min-width: 31rem;
-  }
 }

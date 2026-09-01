@@ -270,7 +270,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   line-height: 1.5;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .findings-more > summary {
@@ -433,3 +433,12 @@
   font-weight: 400;
 }
 
+@media (max-width: 620px) {
+  .finding-art {
+    display: none;
+  }
+
+  .finding-tools {
+    padding-right: 0;
+  }
+}

@@ -23,6 +23,7 @@ export function CaseTable({
   const shortVersion = versionShortener(rows.map((row) => labelOf(row.appVersionId)));
 
   return (
+    <div className="table-scroll">
     <table className="table table-dense">
       <thead>
         <tr>
@@ -72,5 +73,6 @@ export function CaseTable({
         ))}
       </tbody>
     </table>
+    </div>
   );
 }

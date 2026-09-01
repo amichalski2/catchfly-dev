@@ -13,6 +13,12 @@
   gap: var(--space-4);
 }
 
+/* Release rows fit in whole increments. Fill the final sub-row remainder so
+   this panel lands on the same baseline as the stream beside it. */
+.session-rail > .panel:last-child {
+  padding-bottom: var(--session-rail-fill, 0px);
+}
+
 .rail-figure {
   display: flex;
   flex-direction: column;

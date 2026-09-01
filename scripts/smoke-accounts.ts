@@ -1,4 +1,6 @@
-process.loadEnvFile?.();
+import { existsSync } from 'node:fs';
+
+if (existsSync('.env')) process.loadEnvFile?.();
 process.env.CATCHFLY_AUTH_MODE = 'supabase';
 process.env.SUPABASE_URL ??= 'https://smoke.supabase.local';
 process.env.SUPABASE_JWT_SECRET ??= 'catchfly-smoke-secret';

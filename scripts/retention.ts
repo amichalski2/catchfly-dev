@@ -1,8 +1,10 @@
 /** Deletes measured telemetry past each environment's configured retention. */
 
+import { existsSync } from 'node:fs';
+
 import { sql } from '../netlify/functions/lib/db.ts';
 
-process.loadEnvFile?.();
+if (existsSync('.env')) process.loadEnvFile?.();
 
 const removedEvents = await sql().query(
   `delete from telemetry_events t

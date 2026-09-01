@@ -13,7 +13,7 @@
  * Run with: npm run smoke:api
  */
 
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
 import type {
   DeploymentRollup,
@@ -47,7 +47,7 @@ import sessionsHandler from '../netlify/functions/sessions.ts';
 import toolProfileHandler from '../netlify/functions/tool-profile.ts';
 import { CHROME_REPORT_PATH } from './test-io.ts';
 
-process.loadEnvFile?.();
+if (existsSync('.env')) process.loadEnvFile?.();
 
 if (!isDatabaseConfigured()) {
   console.log('\n\x1b[33mNo DATABASE_URL configured — skipping the API checks.\x1b[0m\n');
