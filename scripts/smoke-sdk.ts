@@ -7,7 +7,12 @@ function check(label: string, condition: boolean, detail = ''): void {
   if (!condition) failures.push(label);
 }
 
-type SentEvent = { type: string; sessionId: string; sequence: number };
+type SentEvent = {
+  type: string;
+  sessionId: string;
+  sequence: number;
+  payload: Record<string, unknown>;
+};
 
 const sent: SentEvent[] = [];
 const fakeFetch: typeof fetch = async (_url, init) => {
@@ -37,6 +42,7 @@ const client = new Catchfly({
   projectId: 'smoke',
   environmentId: 'production',
   apiKey: 'cfly_smoke.key',
+  deployment: { id: 'smoke-deploy', appVersionId: 'smoke-v1' },
   fetch: fakeFetch,
 });
 
@@ -71,8 +77,13 @@ const types = sent.map((event) => event.type);
 check(
   'events arrive in order',
   types.join(' → ') ===
-    'session.started → tool.called → tool.completed → tool.called → tool.failed → task.completed',
+    'session.started → tool.called → tool.completed → tool.called → tool.failed',
   types.join(' → '),
+);
+check('automatic instrumentation does not invent a task outcome', !types.some((type) => type.startsWith('task.')));
+check(
+  'the successful tool result is retained',
+  (sent.find((event) => event.type === 'tool.completed')?.payload.result as { found?: string })?.found === 'roses',
 );
 check('every event shares one session', new Set(sent.map((event) => event.sessionId)).size === 1);
 check(

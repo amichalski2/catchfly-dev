@@ -18,8 +18,10 @@ import { fileURLToPath } from 'node:url';
 import { createGzip } from 'node:zlib';
 
 import { handleApi } from '../netlify/functions/lib/router.ts';
+import { authMode } from '../netlify/functions/lib/user-auth.ts';
 
 process.loadEnvFile?.();
+authMode();
 
 const PORT = Number(process.env.PORT ?? 8888);
 const DIST = resolve(dirname(fileURLToPath(import.meta.url)), '../apps/web/dist');
@@ -49,7 +51,14 @@ function cacheControlFor(file: string): string {
 
 function serveStatic(url: string, req: IncomingMessage, res: ServerResponse): void {
   // normalize() before join(), so "../" in a request cannot climb out of dist.
-  const relative = normalize(decodeURIComponent(url.split('?')[0])).replace(/^(\.\.[/\\])+/, '');
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(url.split('?')[0]);
+  } catch {
+    res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' }).end('Invalid URL encoding.');
+    return;
+  }
+  const relative = normalize(decoded).replace(/^(\.\.[/\\])+/, '');
   let file = join(DIST, relative);
   if (!file.startsWith(DIST)) {
     res.writeHead(403).end('Forbidden');
@@ -82,9 +91,15 @@ function serveStatic(url: string, req: IncomingMessage, res: ServerResponse): vo
 }
 
 const server = createServer((req, res) => {
-  void handleApi(req, res).then((handled) => {
-    if (!handled) serveStatic((req.url ?? '/').split('?')[0], req, res);
-  });
+  void handleApi(req, res)
+    .then((handled) => {
+      if (!handled) serveStatic((req.url ?? '/').split('?')[0], req, res);
+    })
+    .catch((error: unknown) => {
+      console.error(`${req.method ?? 'GET'} ${req.url ?? '/'} failed`, error);
+      if (!res.headersSent) res.writeHead(500, { 'content-type': 'application/json' });
+      if (!res.writableEnded) res.end(JSON.stringify({ error: 'Internal error. See the server log.' }));
+    });
 });
 
 server.listen(PORT, () => {

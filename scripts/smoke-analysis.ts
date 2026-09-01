@@ -1,11 +1,10 @@
 /**
  * Checks the failure-clustering layer: that clustering is deterministic, that it
  * accounts for exactly the regressions the query layer reports, and that a
- * registered analysis reaches the agent with its provenance intact.
+ * registered deterministic analysis reaches the agent with its provenance intact.
  *
- * Nothing here reads a committed analysis artefact. Prose is produced at runtime
- * by /api/analyze, so the suite registers an analysis the same way the runtime
- * does — deterministic clusters plus prose — and asserts the serving path.
+ * Nothing here calls a model or an analysis endpoint. The suite registers
+ * deterministic clusters with fallback prose and asserts the serving path.
  *
  * Order matters: the registry is a per-process singleton, so the degraded path
  * is exercised first, before an analysis is registered over it.
@@ -18,12 +17,10 @@ import {
   clusterSignature,
   deriveClusters,
   normalizeReason,
-  PROMPT_VERSION,
 } from '@catchfly/core/analysis.ts';
 import { setAnalysis, setAnalysisUnavailable } from '@catchfly/core/analysis-db.ts';
 import { findRegressions } from '@catchfly/core/queries.ts';
 import { buildGlobalTools } from '../apps/web/src/webmcp/tools.ts';
-import analyze from '../netlify/functions/analyze.ts';
 import { loadTestDb, TEST_RUN_BASELINE, TEST_RUN_CANDIDATE } from './test-io.ts';
 
 const db = loadTestDb();
@@ -112,8 +109,8 @@ async function main(): Promise<void> {
   setAnalysis({
     version: 1,
     provenance: {
-      model: 'offline',
-      promptVersion: PROMPT_VERSION,
+      model: 'none',
+      promptVersion: 'deterministic-v1',
       generatedAt: '2026-01-01T00:00:00.000Z',
       source: 'script',
     },
@@ -132,66 +129,7 @@ async function main(): Promise<void> {
   );
   check('provenance travels with it', loaded.provenance?.promptVersion.length > 0, loaded.provenance?.promptVersion);
 
-  await spendGuards();
   finish();
-}
-
-/**
- * The analysis endpoint is the only code in Catchfly that can spend money, so
- * its refusals are worth testing: every path here must reject *before* a model
- * is ever contacted. Run with no credentials, which is also the state a deploy
- * without the AI Gateway is in.
- */
-async function spendGuards(): Promise<void> {
-  console.log('\n\x1b[1manalysis endpoint refuses before it spends\x1b[0m');
-
-  const key = process.env.OPENAI_API_KEY;
-  delete process.env.OPENAI_API_KEY;
-
-  const post = (body: unknown, init: RequestInit = {}) =>
-    analyze(
-      new Request('https://catchfly.dev/api/analyze', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: typeof body === 'string' ? body : JSON.stringify(body),
-        ...init,
-      }),
-    );
-
-  const valid = {
-    op: 'cluster_failures',
-    clusters: [{ signature: 'tool-selection | a→b | x', category: 'tool-selection' }],
-  };
-
-  const wrongMethod = await analyze(new Request('https://catchfly.dev/api/analyze'));
-  check('GET is refused', wrongMethod.status === 405);
-
-  process.env.CATCHFLY_AI = 'off';
-  const killed = await post(valid);
-  check('the kill switch closes the endpoint', killed.status === 503);
-  delete process.env.CATCHFLY_AI;
-
-  check('a body that is not JSON is refused', (await post('not json')).status === 400);
-
-  const badOp = await post({ ...valid, op: 'summarize_everything' });
-  check(
-    'an unknown op is refused and names the valid ones',
-    badOp.status === 400 && ((await badOp.json()) as { error: string }).error.includes('cluster_failures'),
-  );
-
-  check('an empty cluster list is refused', (await post({ ...valid, clusters: [] })).status === 400);
-  check(
-    'too many clusters are refused, not truncated',
-    (await post({ ...valid, clusters: Array.from({ length: 201 }, () => valid.clusters[0]) })).status === 400,
-  );
-  check('an oversized body is refused', (await post('x'.repeat(33 * 1024))).status === 413);
-
-  // The whole point: a well-formed request with no credentials must still not
-  // reach a model. 503 here means "nothing was called", not "the call failed".
-  const unconfigured = await post(valid);
-  check('a valid request without credentials never reaches a model', unconfigured.status === 503);
-
-  if (key !== undefined) process.env.OPENAI_API_KEY = key;
 }
 
 function finish(): void {

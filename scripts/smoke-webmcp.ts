@@ -25,7 +25,7 @@ import type { Deployment, Session } from '@catchfly/core/session-types.ts';
 import { configureSessionsSource, setSessionsUnavailable } from '@catchfly/core/sessions-db.ts';
 import { memorySessionsSource } from '@catchfly/core/sessions-memory.ts';
 import type { EvalCase } from '@catchfly/core/types.ts';
-import { applyProse, deriveClusters, PROMPT_VERSION } from '@catchfly/core/analysis.ts';
+import { applyProse, deriveClusters } from '@catchfly/core/analysis.ts';
 import { setAnalysis, setAnalysisUnavailable } from '@catchfly/core/analysis-db.ts';
 import { createDb, getDb, setDb } from '@catchfly/core/db.ts';
 import { filterCases, findRegressions } from '@catchfly/core/queries.ts';
@@ -268,14 +268,14 @@ async function main(): Promise<void> {
   check('clusters default to the comparison the user is viewing', clustered.baselineRunId === BASELINE);
   check('with nothing analyzed the tool answers instead of failing', clustered.clusters === null);
 
-  // Register an analysis the way the runtime does — deterministic clusters plus
-  // prose — so the serving path is covered without committing an artefact.
+  // Register deterministic clusters with fallback prose so the serving path is
+  // covered without a model or a committed artefact.
   const derived = deriveClusters(getDb(), BASELINE, CANDIDATE);
   setAnalysis({
     version: 1,
     provenance: {
-      model: 'offline',
-      promptVersion: PROMPT_VERSION,
+      model: 'none',
+      promptVersion: 'deterministic-v1',
       generatedAt: '2026-01-01T00:00:00.000Z',
       source: 'script',
     },
