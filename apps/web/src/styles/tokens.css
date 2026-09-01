@@ -1,0 +1,147 @@
+/**
+ * Catchfly design tokens.
+ *
+ * The ground and ink values are measured from the brand mockup; the semantic
+ * pair is derived from the logo's own hues and then verified — deep rose
+ * #A02F3F against sage #7FA05C clears CVD separation (deutan ΔE 17.7) where the
+ * brand's natural, equally-light rose and sage do not (ΔE 1.6, invisible to
+ * red-green colourblind readers, in greyscale, and after video compression).
+ *
+ * Sage sits at 2.62:1 against the page ground: every sage mark must carry a
+ * visible number beside it. That is a rule of this palette, not a preference.
+ */
+
+:root {
+  /* --- ground -------------------------------------------------------
+     Sampled from the brand mockup, not eyeballed: the page centre reads
+     #f7f0e9 (warm ivory/parchment) and the corners fall to a muted sage
+     grey around #ded8c9. The ground is the ivory; the fall-off is the
+     wallpaper's job, below. Cards sit barely 2–3 values above the page —
+     border and shadow separate them, not brightness. */
+  --bg: #faf4ed;
+  --surface: #fbf5ef;
+  --surface-sunken: #efe6da;
+  --surface-raised: #fffcf8;
+  --border: #e1d5c5;
+  --border-strong: #c9bba8;
+
+  /* --- wallpaper ----------------------------------------------------
+     The mockup's ground is not flat and it is not pink: it is ivory in the
+     middle with a sage-grey mist creeping in from the corners and two very
+     soft blush glows along the top. Everything here is a wash over --bg;
+     only the botanical line-art needs a bitmap.
+     Each wash stays under 0.3 alpha so panel ink keeps the contrast ratios
+     measured below — the ground may vary, the reading surface may not. */
+  --wash-blush: rgba(238, 162, 166, 0.18);
+  --wash-blush-soft: rgba(236, 186, 170, 0.14);
+  --wash-sage: rgba(176, 174, 128, 0.42);
+  --wash-sage-soft: rgba(174, 176, 138, 0.22);
+  /* A whole-viewport vignette: the mockup's edges fall ~15 values below its
+     centre, and corner blooms alone cannot do that evenly. */
+  --wash-vignette: rgba(162, 160, 128, 0.11);
+  /* Paper: two grains, not one. The fine speckle is the tooth of the sheet,
+     the coarse mottle is the cloudiness in the pulp — without the second
+     layer noise reads as television static, not paper. Their strength lives
+     in the `opacity` of the rect inside each noise SVG (base.css), because
+     an `opacity` on the layer itself would fade the washes with them. */
+  /* The tooth of a single sheet, as opposed to the wallpaper's two-layer
+     grain: one surface, one speckle. It lives here rather than inside a rule
+     because every paper surface — a card, the rail — has to carry the same
+     one, and a second copy of this data URI is a second chance to drift. */
+  --grain-paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.11' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)' opacity='0.13'/%3E%3C/svg%3E");
+  --grain-paper-size: 260px 260px;
+
+  /* Cards are frosted, not opaque — the wash and the line-art read through
+     them, diffused by the blur. */
+  --surface-glass: rgba(255, 253, 249, 0.58);
+  --surface-glass-strong: rgba(255, 253, 249, 0.88);
+  --glass-blur: blur(9px) saturate(1.04);
+  /* A hairline of light along the top edge of every card: it is what makes
+     a translucent panel read as a raised sheet rather than a flat hole. */
+  --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
+  /* --- ink: every tier below --text-faint clears AA on --bg ---------- */
+  --text: #2f2319; /* 13.5:1 */
+  --text-secondary: #4e4238; /* 8.6:1 */
+  --text-muted: #6d5f54; /* 5.5:1 — the floor for real content */
+  --text-faint: #928174; /* 3.3:1 — large type and decoration only */
+
+  /* --- semantic axis, CVD-verified ---------------------------------- */
+  --regressed: #a02f3f;
+  --regressed-tint: #f2d9d8;
+  --fixed: #7fa05c;
+  --fixed-tint: #e3ead5;
+  /* Sage is too light for text; this is its readable ink on the tint. */
+  --fixed-ink: #415a25;
+  --series-3: #2f6fb0;
+
+  /* Sequential ramp, one hue — magnitude only, never identity. */
+  --ramp-1: #efd3d3;
+  --ramp-2: #dda9ab;
+  --ramp-3: #c87e85;
+  --ramp-4: #b45663;
+  --ramp-5: #a02f3f;
+
+  /* Neutral mark, for the de-emphasised half of an emphasis chart. It is the
+     ink; --mark-muted-wash is the fill that sits inside it. */
+  --mark-muted: #cdb5a4;
+  --mark-muted-wash: rgba(205, 181, 164, 0.3);
+
+  /* Marks are printed on the same sheet as the panels, but a bar is 20px tall
+     where a panel is hundreds: the panel's 0.11 grain would put two blobs on
+     it rather than a tooth. Same noise, stepped up to mark scale. */
+  --mark-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.4' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)' opacity='0.16'/%3E%3C/svg%3E");
+
+  /* --- who changed the shared state --------------------------------- */
+  --agent: #7a5c8e;
+  --agent-tint: #ece3f0;
+
+  /* --- type --------------------------------------------------------- */
+  --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+  --font-sans: 'Inter Tight', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.5rem;
+  --text-display: 2rem;
+  --text-hero: 3.25rem;
+
+  /* --- space, radius, elevation ------------------------------------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+
+  /* Warm, wide and extremely soft: in the mockup a card is a lift in the
+     paper, never a dark edge. Two stops — a close contact shadow and a
+     broad ambient one. */
+  --shadow-sm:
+    0 1px 2px rgba(122, 96, 74, 0.04),
+    0 8px 22px rgba(122, 96, 74, 0.05);
+  --shadow:
+    0 2px 6px rgba(122, 96, 74, 0.05),
+    0 16px 38px rgba(122, 96, 74, 0.07);
+
+  /* An icon rail, not a panel: wide enough for a comfortable target around a
+     54px plate and nothing more. */
+  --sidebar-width: 5.5rem;
+  /* Prose wraps for readability; the dashboard itself fills the viewport. */
+  --prose-max: 68ch;
+
+  --scrollbar-size: 11px;
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: rgba(201, 187, 168, 0.9);
+  --scrollbar-thumb-hover: rgba(169, 152, 132, 0.95);
+  --scrollbar-thumb-active: rgba(146, 129, 116, 0.95);
+}

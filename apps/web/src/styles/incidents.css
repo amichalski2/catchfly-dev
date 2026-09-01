@@ -1,0 +1,434 @@
+.incident-table-wrap {
+  overflow-x: auto;
+}
+
+.incident-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.incident-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.legend-mark {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+
+.legend-eval { background: var(--fixed); }
+.legend-production { background: var(--regressed); }
+
+.incident-table th:first-child { min-width: 20rem; }
+.incident-table td:nth-child(2) { min-width: 14rem; }
+.incident-table td { vertical-align: top; }
+
+.incident-open:disabled { opacity: 0.6; }
+
+.incident-tools {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.status-mark {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 50%;
+  line-height: 0;
+  cursor: default;
+}
+
+.status-mark img {
+  display: block;
+  filter: saturate(0.92);
+  transition: transform 140ms ease, filter 140ms ease;
+}
+
+.status-mark:hover img,
+.status-mark:focus-visible img {
+  transform: scale(1.12);
+  filter: saturate(1.15);
+}
+
+.status-mark:focus-visible {
+  outline: 2px solid var(--agent);
+  outline-offset: 3px;
+}
+
+/* Left of the mark, never below it: the release card clips its overflow and the
+   incident table scrolls on one axis, so a tip underneath would be cut off in
+   both. The mark always sits at the right edge of its row, so left is free. */
+.status-mark-tip {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 8px);
+  z-index: 5;
+  padding: 3px var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(4px, -50%);
+  transition: opacity 120ms ease, transform 120ms ease;
+  pointer-events: none;
+}
+
+.status-mark:hover .status-mark-tip,
+.status-mark:focus-visible .status-mark-tip {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+
+
+@media (max-width: 860px) {
+  .incident-table th:first-child { min-width: 16rem; }
+}
+
+.incident-title {
+  display: block;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.incident-evidence {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.incident-evidence button:disabled {
+  opacity: 0.45;
+  cursor: default;
+  text-decoration: none;
+}
+
+.corroboration {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.corr {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: baseline;
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.corr-met {
+  color: var(--fixed-ink);
+}
+
+.corr-unmet {
+  color: var(--text-faint);
+}
+
+
+/* --- the three that deserve attention ------------------------------- */
+
+.findings {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+@media (max-width: 1100px) {
+  .findings {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* A card of its own on the dashboard, and the whole card is the target: the
+   stretched button below covers it, so there is one obvious thing to click
+   rather than a pair of small links in the corner. */
+.finding {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  padding-bottom: var(--space-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  box-shadow: var(--edge-light), var(--shadow-sm);
+  transition: box-shadow 160ms ease-out, border-color 160ms ease-out;
+}
+
+.finding:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--edge-light), var(--shadow);
+}
+
+.finding:has(.finding-open:focus-visible) {
+  outline: 2px solid var(--agent);
+  outline-offset: 2px;
+}
+
+/* Painted for this finding and parked in the corner the actions used to hold. */
+.finding-art {
+  position: absolute;
+  right: -0.75rem;
+  bottom: -1rem;
+  width: 8.5rem;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* The target itself: invisible, covers the card, and carries the label. */
+.finding-open {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  cursor: pointer;
+}
+
+.finding-open:disabled {
+  cursor: progress;
+}
+
+.finding-open:focus-visible {
+  outline: none;
+}
+
+.finding-head {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.finding-title {
+  font-size: var(--text-lg);
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+.finding-summary {
+  margin: 0;
+  min-height: 2.9em;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.finding-figures {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-2) 0 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.finding-figures div {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.finding-figures dt {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.finding-figures dd {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+/* Wraps before the plate rather than running under it. */
+.finding-tools {
+  margin: 0;
+  padding-right: 7.5rem;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.findings-more > summary {
+  width: fit-content;
+  padding: var(--space-2) 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  list-style: none;
+}
+
+.findings-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.findings-more > summary::before {
+  content: '▸';
+  display: inline-block;
+  width: 1.1em;
+  color: var(--text-faint);
+}
+
+.findings-more[open] > summary::before {
+  content: '▾';
+}
+
+.findings-more > summary:hover {
+  color: var(--text);
+}
+
+.findings-more > summary:focus-visible {
+  outline: 2px solid var(--agent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+.findings-more .incident-table-wrap {
+  margin-top: var(--space-2);
+}
+
+/* --- the hero, flattened ---------------------------------------------
+   Five figures on one line rather than a headline block beside a grid of
+   four. `display: contents` drops the tiles' own grid so all five share the
+   page's columns and sit on one baseline. Saves roughly half the height. */
+
+.incident-overview .panel-hero .hero-row {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: start;
+  gap: var(--space-5);
+  padding-top: var(--space-4);
+}
+
+.incident-overview .panel-hero .tiles {
+  display: contents;
+}
+
+.incident-overview .panel-hero .hero {
+  gap: 2px;
+}
+
+.incident-overview .panel-hero .hero-value {
+  font-size: var(--text-display);
+  line-height: 1.2;
+}
+
+.incident-overview .panel-hero .hero-caption {
+  font-size: var(--text-xs);
+  color: var(--text-faint);
+}
+
+.incident-overview .panel-hero .panel-body {
+  padding-bottom: var(--space-4);
+}
+
+/* The rule now divides five equal columns, so the first tile needs one too. */
+.incident-overview .panel-hero .tiles > .tile:first-child {
+  padding-left: var(--space-4);
+  border-left: 1px solid var(--border);
+}
+
+@media (max-width: 1180px) {
+  .incident-overview .panel-hero .hero-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .incident-overview .panel-hero .hero-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* --- the recurrence strip --------------------------------------------
+   One release per slot, the struck ones marked. Deliberately no vertical
+   axis: the magnitude is already stated in points above, and an unlabelled
+   height is a scale the reader has to guess at. This answers only "when, and
+   how often", which is the one thing the numbers cannot say. */
+
+.finding-spark {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.recur {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 1.375rem;
+}
+
+.recur-slot {
+  position: relative;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  align-items: flex-end;
+  min-width: 0;
+  height: 100%;
+}
+
+/* The gap where the next cycle begins — the claim is "once in each", so the
+   halves have to be visible for the pair to mean anything. */
+.recur-slot.starts-cycle {
+  margin-left: var(--space-3);
+}
+
+.recur-slot > i {
+  width: 3px;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+
+.recur-slot.is-struck > i {
+  height: 100%;
+  background: var(--text-faint);
+}
+
+.recur-regression .recur-slot.is-struck > i { background: var(--regressed); }
+.recur-decoy .recur-slot.is-struck > i { background: var(--agent); }
+.recur-recovery .recur-slot.is-struck > i { background: var(--fixed-ink); }
+
+/* The struck releases are named; the first and last are there so the row reads
+   as a run of releases rather than two numbers floating in space. They are the
+   scale, so they stay quieter than the marks. */
+.recur-slot > b {
+  position: absolute;
+  bottom: calc(100% + 2px);
+  color: var(--text-secondary);
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.recur-slot > b.is-end {
+  color: var(--text-faint);
+  font-weight: 400;
+}
+

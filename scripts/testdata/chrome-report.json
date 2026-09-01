@@ -1,0 +1,6071 @@
+{
+  "config": {
+    "backend": "test",
+    "model": "model-a",
+    "chromeChannel": "chrome-canary",
+    "evalsFile": "evals.json",
+    "toolSchemaFile": "schema.json"
+  },
+  "results": {
+    "results": [
+      {
+        "test": {
+          "name": "search for one item (case-01)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search for one item for item-1."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_alpha",
+              "arguments": {
+                "query": "item-1"
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-1"
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 1,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-1"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search for one item (case-01)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search for one item for item-1."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_alpha",
+              "arguments": {
+                "query": "item-1"
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-1"
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 2,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-1"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search for one item (case-02)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search for one item for item-2."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_alpha",
+              "arguments": {
+                "query": "item-2"
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_gamma",
+          "args": {
+            "query": "item-2"
+          },
+          "result": {
+            "found": false
+          }
+        },
+        "outcome": "fail",
+        "runIndex": 1,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_gamma.",
+            "toolCalls": [
+              {
+                "functionName": "tool_gamma",
+                "args": {
+                  "query": "item-2"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "found": false
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search for one item (case-02)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search for one item for item-2."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_alpha",
+              "arguments": {
+                "query": "item-2"
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_gamma",
+          "args": {
+            "query": "item-2"
+          },
+          "result": {
+            "found": false
+          }
+        },
+        "outcome": "fail",
+        "runIndex": 2,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_gamma.",
+            "toolCalls": [
+              {
+                "functionName": "tool_gamma",
+                "args": {
+                  "query": "item-2"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "found": false
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search for one item (case-03)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search for one item for item-3."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_alpha",
+              "arguments": {
+                "query": "item-3"
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-3"
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 1,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-3"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search for one item (case-03)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search for one item for item-3."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_alpha",
+              "arguments": {
+                "query": "item-3"
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-3"
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 2,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-3"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search for one item (case-04)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search for one item for item-4."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_alpha",
+              "arguments": {
+                "query": "item-4"
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-4"
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 1,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-4"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search for one item (case-04)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search for one item for item-4."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_alpha",
+              "arguments": {
+                "query": "item-4"
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-4"
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 2,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-4"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search for one item (case-05)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search for one item for item-5."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_alpha",
+              "arguments": {
+                "query": "item-5"
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-5"
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 1,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-5"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search for one item (case-05)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search for one item for item-5."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_alpha",
+              "arguments": {
+                "query": "item-5"
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-5"
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 2,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-5"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search then record (case-06)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search then record for item-6."
+            }
+          ],
+          "expectedCall": [
+            {
+              "ordered": [
+                {
+                  "functionName": "tool_alpha",
+                  "arguments": {
+                    "query": "item-6"
+                  }
+                },
+                {
+                  "functionName": "tool_beta"
+                }
+              ]
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-6"
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 1,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-6"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          },
+          {
+            "reasoningText": "Calling tool_beta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_beta",
+                "args": {
+                  "id": "item-6"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "recorded": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search then record (case-06)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search then record for item-6."
+            }
+          ],
+          "expectedCall": [
+            {
+              "ordered": [
+                {
+                  "functionName": "tool_alpha",
+                  "arguments": {
+                    "query": "item-6"
+                  }
+                },
+                {
+                  "functionName": "tool_beta"
+                }
+              ]
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-6"
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 2,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-6"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          },
+          {
+            "reasoningText": "Calling tool_beta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_beta",
+                "args": {
+                  "id": "item-6"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "recorded": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search then record (case-07)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search then record for item-7."
+            }
+          ],
+          "expectedCall": [
+            {
+              "ordered": [
+                {
+                  "functionName": "tool_alpha",
+                  "arguments": {
+                    "query": "item-7"
+                  }
+                },
+                {
+                  "functionName": "tool_beta"
+                }
+              ]
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_beta",
+          "args": {
+            "id": "item-7"
+          },
+          "result": {
+            "recorded": true
+          }
+        },
+        "outcome": "fail",
+        "runIndex": 1,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_beta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_beta",
+                "args": {
+                  "id": "item-7"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "recorded": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          },
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-7"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search then record (case-07)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search then record for item-7."
+            }
+          ],
+          "expectedCall": [
+            {
+              "ordered": [
+                {
+                  "functionName": "tool_alpha",
+                  "arguments": {
+                    "query": "item-7"
+                  }
+                },
+                {
+                  "functionName": "tool_beta"
+                }
+              ]
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_beta",
+          "args": {
+            "id": "item-7"
+          },
+          "result": {
+            "recorded": true
+          }
+        },
+        "outcome": "fail",
+        "runIndex": 2,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_beta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_beta",
+                "args": {
+                  "id": "item-7"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "recorded": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          },
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-7"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search then record (case-08)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search then record for item-8."
+            }
+          ],
+          "expectedCall": [
+            {
+              "ordered": [
+                {
+                  "functionName": "tool_alpha",
+                  "arguments": {
+                    "query": "item-8"
+                  }
+                },
+                {
+                  "functionName": "tool_beta"
+                }
+              ]
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-8"
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 1,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-8"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          },
+          {
+            "reasoningText": "Calling tool_beta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_beta",
+                "args": {
+                  "id": "item-8"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "recorded": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search then record (case-08)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search then record for item-8."
+            }
+          ],
+          "expectedCall": [
+            {
+              "ordered": [
+                {
+                  "functionName": "tool_alpha",
+                  "arguments": {
+                    "query": "item-8"
+                  }
+                },
+                {
+                  "functionName": "tool_beta"
+                }
+              ]
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-8"
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 2,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-8"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          },
+          {
+            "reasoningText": "Calling tool_beta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_beta",
+                "args": {
+                  "id": "item-8"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "recorded": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search then record (case-09)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search then record for item-9."
+            }
+          ],
+          "expectedCall": [
+            {
+              "ordered": [
+                {
+                  "functionName": "tool_alpha",
+                  "arguments": {
+                    "query": "item-9"
+                  }
+                },
+                {
+                  "functionName": "tool_beta"
+                }
+              ]
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-9"
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 1,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-9"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          },
+          {
+            "reasoningText": "Calling tool_beta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_beta",
+                "args": {
+                  "id": "item-9"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "recorded": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search then record (case-09)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search then record for item-9."
+            }
+          ],
+          "expectedCall": [
+            {
+              "ordered": [
+                {
+                  "functionName": "tool_alpha",
+                  "arguments": {
+                    "query": "item-9"
+                  }
+                },
+                {
+                  "functionName": "tool_beta"
+                }
+              ]
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-9"
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 2,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-9"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          },
+          {
+            "reasoningText": "Calling tool_beta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_beta",
+                "args": {
+                  "id": "item-9"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "recorded": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search then record (case-10)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search then record for item-10."
+            }
+          ],
+          "expectedCall": [
+            {
+              "ordered": [
+                {
+                  "functionName": "tool_alpha",
+                  "arguments": {
+                    "query": "item-10"
+                  }
+                },
+                {
+                  "functionName": "tool_beta"
+                }
+              ]
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-10"
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 1,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-10"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          },
+          {
+            "reasoningText": "Calling tool_beta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_beta",
+                "args": {
+                  "id": "item-10"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "recorded": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search then record (case-10)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search then record for item-10."
+            }
+          ],
+          "expectedCall": [
+            {
+              "ordered": [
+                {
+                  "functionName": "tool_alpha",
+                  "arguments": {
+                    "query": "item-10"
+                  }
+                },
+                {
+                  "functionName": "tool_beta"
+                }
+              ]
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-10"
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 2,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-10"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          },
+          {
+            "reasoningText": "Calling tool_beta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_beta",
+                "args": {
+                  "id": "item-10"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "recorded": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "record and remove (case-11)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please record and remove for item-11."
+            }
+          ],
+          "expectedCall": [
+            {
+              "unordered": [
+                {
+                  "functionName": "tool_beta"
+                },
+                {
+                  "functionName": "tool_delta"
+                }
+              ]
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_beta",
+          "args": {
+            "id": "item-11"
+          },
+          "result": {
+            "recorded": true
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 1,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_beta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_beta",
+                "args": {
+                  "id": "item-11"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "recorded": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          },
+          {
+            "reasoningText": "Calling tool_delta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_delta",
+                "args": {
+                  "id": "item-11"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "removed": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "record and remove (case-11)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please record and remove for item-11."
+            }
+          ],
+          "expectedCall": [
+            {
+              "unordered": [
+                {
+                  "functionName": "tool_beta"
+                },
+                {
+                  "functionName": "tool_delta"
+                }
+              ]
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_beta",
+          "args": {
+            "id": "item-11"
+          },
+          "result": {
+            "recorded": true
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 2,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_beta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_beta",
+                "args": {
+                  "id": "item-11"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "recorded": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          },
+          {
+            "reasoningText": "Calling tool_delta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_delta",
+                "args": {
+                  "id": "item-11"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "removed": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "record and remove (case-12)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please record and remove for item-12."
+            }
+          ],
+          "expectedCall": [
+            {
+              "unordered": [
+                {
+                  "functionName": "tool_beta"
+                },
+                {
+                  "functionName": "tool_delta"
+                }
+              ]
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_omega",
+          "args": {
+            "id": "item-12"
+          },
+          "result": null
+        },
+        "outcome": "fail",
+        "runIndex": 1,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_omega.",
+            "toolCalls": [
+              {
+                "functionName": "tool_omega",
+                "args": {
+                  "id": "item-12"
+                }
+              }
+            ],
+            "toolResults": [
+              null
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "record and remove (case-12)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please record and remove for item-12."
+            }
+          ],
+          "expectedCall": [
+            {
+              "unordered": [
+                {
+                  "functionName": "tool_beta"
+                },
+                {
+                  "functionName": "tool_delta"
+                }
+              ]
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_omega",
+          "args": {
+            "id": "item-12"
+          },
+          "result": null
+        },
+        "outcome": "fail",
+        "runIndex": 2,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_omega.",
+            "toolCalls": [
+              {
+                "functionName": "tool_omega",
+                "args": {
+                  "id": "item-12"
+                }
+              }
+            ],
+            "toolResults": [
+              null
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "record and remove (case-13)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please record and remove for item-13."
+            }
+          ],
+          "expectedCall": [
+            {
+              "unordered": [
+                {
+                  "functionName": "tool_beta"
+                },
+                {
+                  "functionName": "tool_delta"
+                }
+              ]
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_beta",
+          "args": {
+            "id": "item-13"
+          },
+          "result": {
+            "recorded": true
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 1,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_beta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_beta",
+                "args": {
+                  "id": "item-13"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "recorded": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          },
+          {
+            "reasoningText": "Calling tool_delta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_delta",
+                "args": {
+                  "id": "item-13"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "removed": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "record and remove (case-13)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please record and remove for item-13."
+            }
+          ],
+          "expectedCall": [
+            {
+              "unordered": [
+                {
+                  "functionName": "tool_beta"
+                },
+                {
+                  "functionName": "tool_delta"
+                }
+              ]
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_beta",
+          "args": {
+            "id": "item-13"
+          },
+          "result": {
+            "recorded": true
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 2,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_beta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_beta",
+                "args": {
+                  "id": "item-13"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "recorded": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          },
+          {
+            "reasoningText": "Calling tool_delta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_delta",
+                "args": {
+                  "id": "item-13"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "removed": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "record and remove (case-14)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please record and remove for item-14."
+            }
+          ],
+          "expectedCall": [
+            {
+              "unordered": [
+                {
+                  "functionName": "tool_beta"
+                },
+                {
+                  "functionName": "tool_delta"
+                }
+              ]
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_beta",
+          "args": {
+            "id": "item-14"
+          },
+          "result": {
+            "recorded": true
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 1,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_beta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_beta",
+                "args": {
+                  "id": "item-14"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "recorded": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          },
+          {
+            "reasoningText": "Calling tool_delta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_delta",
+                "args": {
+                  "id": "item-14"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "removed": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "record and remove (case-14)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please record and remove for item-14."
+            }
+          ],
+          "expectedCall": [
+            {
+              "unordered": [
+                {
+                  "functionName": "tool_beta"
+                },
+                {
+                  "functionName": "tool_delta"
+                }
+              ]
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_beta",
+          "args": {
+            "id": "item-14"
+          },
+          "result": {
+            "recorded": true
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 2,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_beta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_beta",
+                "args": {
+                  "id": "item-14"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "recorded": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          },
+          {
+            "reasoningText": "Calling tool_delta.",
+            "toolCalls": [
+              {
+                "functionName": "tool_delta",
+                "args": {
+                  "id": "item-14"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "removed": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "fetch and check the payload (case-15)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please fetch and check the payload for item-15."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_gamma",
+              "arguments": {
+                "id": "item-15"
+              },
+              "result": {
+                "found": true
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_gamma",
+          "args": {
+            "id": "item-15"
+          },
+          "result": {
+            "found": true
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 1,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_gamma.",
+            "toolCalls": [
+              {
+                "functionName": "tool_gamma",
+                "args": {
+                  "id": "item-15"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "found": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "fetch and check the payload (case-15)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please fetch and check the payload for item-15."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_gamma",
+              "arguments": {
+                "id": "item-15"
+              },
+              "result": {
+                "found": true
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_gamma",
+          "args": {
+            "id": "item-15"
+          },
+          "result": {
+            "found": true
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 2,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_gamma.",
+            "toolCalls": [
+              {
+                "functionName": "tool_gamma",
+                "args": {
+                  "id": "item-15"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "found": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "fetch and check the payload (case-16)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please fetch and check the payload for item-16."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_gamma",
+              "arguments": {
+                "id": "item-16"
+              },
+              "result": {
+                "found": true
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_gamma",
+          "args": {
+            "id": "item-16"
+          },
+          "result": {
+            "found": true
+          }
+        },
+        "outcome": "fail",
+        "runIndex": 1,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_gamma.",
+            "toolCalls": [
+              {
+                "functionName": "tool_gamma",
+                "args": {
+                  "id": "item-16"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "found": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "fetch and check the payload (case-16)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please fetch and check the payload for item-16."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_gamma",
+              "arguments": {
+                "id": "item-16"
+              },
+              "result": {
+                "found": true
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_gamma",
+          "args": {
+            "id": "item-16"
+          },
+          "result": {
+            "found": true
+          }
+        },
+        "outcome": "fail",
+        "runIndex": 2,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_gamma.",
+            "toolCalls": [
+              {
+                "functionName": "tool_gamma",
+                "args": {
+                  "id": "item-16"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "found": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "fetch and check the payload (case-17)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please fetch and check the payload for item-17."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_gamma",
+              "arguments": {
+                "id": "item-17"
+              },
+              "result": {
+                "found": true
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_gamma",
+          "args": {
+            "id": "item-17"
+          },
+          "result": {
+            "found": true
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 1,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_gamma.",
+            "toolCalls": [
+              {
+                "functionName": "tool_gamma",
+                "args": {
+                  "id": "item-17"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "found": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "fetch and check the payload (case-17)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please fetch and check the payload for item-17."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_gamma",
+              "arguments": {
+                "id": "item-17"
+              },
+              "result": {
+                "found": true
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_gamma",
+          "args": {
+            "id": "item-17"
+          },
+          "result": {
+            "found": true
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 2,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_gamma.",
+            "toolCalls": [
+              {
+                "functionName": "tool_gamma",
+                "args": {
+                  "id": "item-17"
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "found": true
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search within a bounded limit (case-18)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search within a bounded limit for item-18."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_alpha",
+              "arguments": {
+                "query": "item-18",
+                "limit": {
+                  "$lte": 5
+                }
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-18",
+            "limit": 3
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 1,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-18",
+                  "limit": 3
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search within a bounded limit (case-18)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search within a bounded limit for item-18."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_alpha",
+              "arguments": {
+                "query": "item-18",
+                "limit": {
+                  "$lte": 5
+                }
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-18",
+            "limit": 3
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 2,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-18",
+                  "limit": 3
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search within a bounded limit (case-19)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search within a bounded limit for item-19."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_alpha",
+              "arguments": {
+                "query": "item-19",
+                "limit": {
+                  "$lte": 5
+                }
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-19",
+            "limit": 3
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 1,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-19",
+                  "limit": 3
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search within a bounded limit (case-19)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search within a bounded limit for item-19."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_alpha",
+              "arguments": {
+                "query": "item-19",
+                "limit": {
+                  "$lte": 5
+                }
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-19",
+            "limit": 3
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 2,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-19",
+                  "limit": 3
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search within a bounded limit (case-20)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search within a bounded limit for item-20."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_alpha",
+              "arguments": {
+                "query": "item-20",
+                "limit": {
+                  "$lte": 5
+                }
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-20",
+            "limit": 3
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 1,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-20",
+                  "limit": 3
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "test": {
+          "name": "search within a bounded limit (case-20)",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Please search within a bounded limit for item-20."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "tool_alpha",
+              "arguments": {
+                "query": "item-20",
+                "limit": {
+                  "$lte": 5
+                }
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "tool_alpha",
+          "args": {
+            "query": "item-20",
+            "limit": 3
+          },
+          "result": {
+            "matches": 3
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 2,
+        "trajectory": [
+          {
+            "reasoningText": "Calling tool_alpha.",
+            "toolCalls": [
+              {
+                "functionName": "tool_alpha",
+                "args": {
+                  "query": "item-20",
+                  "limit": 3
+                }
+              }
+            ],
+            "toolResults": [
+              {
+                "matches": 3
+              }
+            ],
+            "availableTools": [
+              {
+                "functionName": "tool_alpha",
+                "description": "Search the catalogue for items matching a text query.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_beta",
+                "description": "Take the item found by tool_alpha and record it.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_gamma",
+                "description": "Fetch one known item by its id.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_delta",
+                "description": "Remove a recorded item.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "functionName": "tool_epsilon",
+                "description": "Summarise everything recorded so far.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "testCount": 40,
+    "passCount": 32,
+    "failCount": 8,
+    "errorCount": 0
+  }
+}

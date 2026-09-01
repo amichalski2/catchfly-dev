@@ -1,0 +1,14 @@
+{
+  "name": "@catchfly/devpost-world",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The Devpost Review Console world: what the app shows agents, what its backend knows, and — kept strictly apart — what the generator knows.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*.ts": "./src/*.ts"
+  },
+  "dependencies": {
+    "@catchfly/core": "*"
+  }
+}

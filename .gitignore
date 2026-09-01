@@ -1,0 +1,53 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Local secrets — the analysis script reads OPENAI_API_KEY from here.
+.env
+.env.*
+!.env.example
+.claude
+
+# Eval reports produced by `npm run evals`.
+.evals
+
+# The same, for the Devpost console. The committed artefact is db/seed/pilot.json,
+# which these reports are imported into — not the reports themselves.
+.evals-console
+
+# Buildy porownawcze dla eksperymentu przed/po.
+.evals-builds
+.evals-before
+.evals-exp
+
+# Downloaded browser packages and stray design assets dropped at the repo root.
+*.deb
+/*.jpg
+/*.png
+
+# Local Netlify folder
+.netlify
+
+.scripts
+.mcp.json

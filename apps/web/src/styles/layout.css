@@ -1,0 +1,711 @@
+/* --- shell ---------------------------------------------------------- */
+
+.shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-5) var(--space-2);
+  /* The same frosted paper as a card, run the full height of the rail: the
+     page wash carries on behind it, blurred, and the sheet's own tooth sits
+     on top — the mockup has one continuous ground and a hairline, not a slab.
+     Three layers, top to bottom: light falling in from the head of the rail,
+     the grain, then the sheet itself. The sheet thins as it descends so the
+     watercolour plate pinned to the rail's foot keeps its colour instead of
+     going milky, which is why it is a gradient here and a flat
+     `background-color` on `.panel`. */
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 253, 249, 0) 18rem),
+    var(--grain-paper),
+    linear-gradient(180deg, var(--surface-glass) 0%, rgba(255, 252, 248, 0.28) 100%);
+  background-size:
+    auto,
+    var(--grain-paper-size),
+    auto;
+  background-blend-mode: normal, multiply, normal;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-right: 1px solid var(--border);
+}
+
+/* The mark alone, not the lockup: at rail width the wordmark would set at
+   about four pixels of cap height, which is decoration pretending to be type. */
+.brand-mark {
+  width: 3.375rem;
+  height: auto;
+  flex: none;
+}
+
+/* Turned out of the rail — it is a card, and the rail is 5.5rem wide. It
+   reads against the page title instead, where the reader is already looking. */
+.project-switch {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+  flex: none;
+  max-width: 16rem;
+  text-align: right;
+}
+
+.project-switch strong {
+  color: var(--text);
+  font-size: var(--text-sm);
+  line-height: 1.35;
+}
+
+.project-switch select {
+  width: 100%;
+  min-width: 12rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.project-switch select:hover {
+  border-color: var(--text-faint);
+}
+
+.project-origin {
+  width: fit-content;
+  color: var(--text-faint);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+}
+
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+}
+
+.sidebar-primary {
+  flex: 1;
+  justify-content: center;
+}
+
+.sidebar-utility {
+  flex: none;
+}
+
+/* Icon-only, so the target is the whole width of the rail rather than the
+   glyph — a 54px picture is not something to ask anyone to hit. */
+.nav-item {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 100%;
+  height: 4.5rem;
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+}
+
+/* Resting icons are drained rather than greyed: the plates are drawn in the
+   brand palette, and desaturating them keeps the drawing legible while the
+   selected one is the only one at full strength. */
+.nav-item img {
+  width: 3.375rem;
+  height: 3.375rem;
+  object-fit: contain;
+  opacity: 0.62;
+  filter: saturate(0.5);
+  transition:
+    opacity 120ms ease,
+    filter 120ms ease;
+}
+
+.nav-item:hover img,
+.nav-item:focus-visible img {
+  opacity: 0.85;
+  filter: saturate(0.85);
+}
+
+.nav-item:hover {
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.nav-item.is-active {
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+.nav-item.is-active img {
+  opacity: 1;
+  filter: none;
+}
+
+.main {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-6) var(--space-6) var(--space-7);
+}
+
+.main-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-5);
+  margin-bottom: var(--space-4);
+}
+
+.content {
+  position: relative;
+}
+
+.settings-tabs {
+  display: flex;
+  gap: var(--space-1);
+  width: fit-content;
+  margin-bottom: var(--space-5);
+  padding: var(--space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-glass);
+}
+
+.settings-tabs button {
+  padding: var(--space-2) var(--space-4);
+  border-radius: calc(var(--radius) - 2px);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 650;
+}
+
+.settings-tabs button:hover,
+.settings-tabs button:focus-visible {
+  color: var(--text);
+  background: var(--surface-raised);
+}
+
+.settings-tabs button.is-active {
+  color: var(--text);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Only running text gets a measure — panels, tables and plots use the width. */
+.main-head p,
+.panel-head p {
+  max-width: var(--prose-max);
+}
+
+/* Decoration lives at the page edge, behind everything, never under data.
+   One watercolour plate, cut out of its paper with an alpha ramp: a blush
+   corner at the top right, mirroring the mockup. Fixed to the viewport, so
+   every view and every scroll position keeps the same arrangement. */
+.botanical {
+  position: fixed;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.botanical img {
+  width: 100%;
+  height: auto;
+}
+
+.botanical-corner {
+  top: -1rem;
+  right: -1rem;
+  width: 22rem;
+  opacity: 0.32;
+}
+
+/* The plate's cluster sits bottom-left; flipping both axes hangs it off the
+   top-right corner instead of drawing a second asset. */
+.botanical-corner img {
+  transform: scale(-1);
+}
+
+/* Narrow viewports have no spare margin for decoration. */
+@media (max-width: 1180px) {
+  .botanical-corner {
+    display: none;
+  }
+}
+
+/* --- card decoration -------------------------------------------------
+   The mockup's action cards carry the same watercolour in a bottom corner.
+   It is a decoration of the panel, not of its content: it hugs a corner the
+   content does not reach, and `contain: paint` on .panel clips it to the
+   rounded edge. Never add it to a panel whose plot or table runs full width. */
+.panel-decor::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 13rem;
+  height: 8rem;
+  background: url('/brand/decor-sage.webp') right bottom / contain no-repeat;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* The plate occupies a corner, so the body gives that corner up rather than
+   letting a line of text run through the watercolour. The stacking order is
+   explicit too: an absolutely positioned ::after would otherwise paint above
+   in-flow text. */
+.panel-decor > .panel-head,
+.panel-decor > .panel-body {
+  position: relative;
+  z-index: 1;
+  padding-bottom: var(--space-7);
+}
+
+.panel-decor > .panel-head {
+  padding-bottom: 0;
+}
+
+.panel-decor-blush::after {
+  background-image: url('/brand/decor-blush.webp');
+}
+
+.panel-decor-left::after {
+  right: auto;
+  left: 0;
+  background-position: left bottom;
+}
+
+@media (max-width: 860px) {
+  .panel-decor::after {
+    display: none;
+  }
+}
+
+.boot {
+  display: grid;
+  gap: var(--space-2);
+  place-content: center;
+  min-height: 100vh;
+  text-align: center;
+}
+
+.boot-error {
+  color: var(--regressed);
+}
+
+.boot-loading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+@keyframes flower-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+.boot-loading-flower {
+  display: block;
+  flex: none;
+  animation: flower-spin 1.25s linear infinite;
+}
+
+.session-mark.is-spinning {
+  animation: flower-spin 1.25s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boot-loading-flower,
+  .session-mark.is-spinning {
+    animation: none;
+  }
+}
+
+/* --- session strip -------------------------------------------------- */
+
+.session {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
+  background: var(--surface-glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+}
+
+.session-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* The brand's bloom in place of a status dot: sage when the site tools are
+   live, drained to --mark-muted when they are not. Absent tooling is not a
+   fault — the dashboard works either way — so the off state desaturates
+   rather than turning rose, and rose stays reserved for a real failure.
+   It is decoration: the label beside it says which state this is, because
+   sage reads 2.62:1 on this ground and colour never carried the meaning. */
+.session-mark {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.session-action {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  margin-right: auto;
+  padding-left: var(--space-4);
+  border-left: 1px solid var(--border);
+}
+
+.session-summary {
+  overflow: hidden;
+  color: var(--text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.who {
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.who-agent {
+  background: var(--agent-tint);
+  color: var(--agent);
+}
+
+.who-human {
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+}
+
+.btn {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn-quiet {
+  border-color: var(--border);
+}
+
+/* --- layout primitives ---------------------------------------------- */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: var(--space-5);
+}
+
+@media (max-width: 1180px) {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  /* Laid on its side: the mark and navigation plates in a row, still a rail. */
+  .sidebar {
+    height: auto;
+    overflow-y: visible;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-2) var(--space-4);
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    z-index: 2;
+  }
+
+  .brand-mark {
+    width: 2.625rem;
+  }
+
+  .sidebar nav {
+    flex-direction: row;
+    width: auto;
+  }
+
+  .sidebar-primary {
+    justify-content: flex-start;
+    min-width: 0;
+    overflow-x: auto;
+  }
+
+  .sidebar-utility {
+    margin-left: auto;
+  }
+
+  .nav-item {
+    width: 4.125rem;
+  }
+
+  /* The rule marks the leading edge, which is the top once the rail turns. */
+  .nav-item.is-active {
+    box-shadow: inset 0 2px 0 var(--regressed);
+  }
+
+  .main-head {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .project-switch {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .settings-tabs {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+
+
+
+.agent-activity {
+  margin-bottom: var(--space-5);
+  background: var(--surface-glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  overflow: hidden;
+}
+
+.agent-activity-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2) var(--space-4);
+  color: var(--text-secondary);
+  text-align: left;
+}
+
+.agent-activity-head:hover {
+  background: var(--surface-raised);
+}
+
+.agent-activity-count {
+  color: var(--text-muted);
+}
+
+.agent-activity-latest {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-activity-toggle {
+  color: var(--text-faint);
+}
+
+.agent-activity-list {
+  margin: 0;
+  padding: 0 var(--space-4) var(--space-3);
+  list-style: none;
+}
+
+.agent-step {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: 3px 0;
+  border-top: 1px solid var(--border);
+  line-height: 1.5;
+}
+
+.agent-step-time {
+  color: var(--text-faint);
+  font-size: var(--text-xs);
+}
+
+.agent-step-tool {
+  color: var(--text);
+  font-size: var(--text-xs);
+}
+
+.agent-step-read .agent-step-tool {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.agent-step-write .agent-step-tool {
+  font-weight: 600;
+}
+
+.agent-step-kind {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.agent-step-args {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-step-durable .agent-step-tool {
+  font-weight: 600;
+}
+
+.agent-step-duration {
+  color: var(--text-faint);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.agent-step-error {
+  flex: 1;
+  min-width: 0;
+  color: var(--regressed);
+  font-size: var(--text-xs);
+}
+
+.agent-step.is-pending .agent-step-kind {
+  color: var(--agent);
+}
+
+.agent-step.is-failed .agent-step-kind {
+  color: var(--regressed);
+}
+
+.agent-step-durable.is-ok .agent-step-kind {
+  color: var(--agent);
+  font-weight: 600;
+}
+
+.session-irreversible {
+  flex: none;
+  color: var(--text-faint);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .main {
+    padding: var(--space-4) var(--space-3) var(--space-6);
+  }
+
+  .sidebar {
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .brand-mark {
+    width: 2rem;
+  }
+
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar,
+  .main {
+    min-width: 0;
+  }
+
+  .sidebar-primary {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .nav-item {
+    width: 3rem;
+    height: 3.25rem;
+  }
+
+  .nav-item img {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .session {
+    flex-wrap: wrap;
+    row-gap: var(--space-2);
+    border-radius: var(--radius-lg);
+  }
+
+  .session-status {
+    margin-right: auto;
+  }
+
+  .session-action {
+    order: 3;
+    flex-basis: 100%;
+    padding-left: 0;
+    border-left: none;
+  }
+
+  .session-summary {
+    white-space: normal;
+  }
+
+  .agent-activity-latest {
+    display: none;
+  }
+
+  .agent-step {
+    flex-wrap: wrap;
+  }
+
+  .agent-step-error {
+    flex-basis: 100%;
+  }
+}

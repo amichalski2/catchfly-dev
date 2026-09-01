@@ -1,0 +1,55 @@
+{
+  "name": "catchfly",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace @catchfly/web",
+    "build": "tsc -b && npm run build --workspace @catchfly/sdk && npm run build --workspace @catchfly/cli && npm run build --workspace @catchfly/web",
+    "preview": "npm run preview --workspace @catchfly/web",
+    "dev:console": "npm run dev --workspace @catchfly/console",
+    "build:console": "npm run build --workspace @catchfly/console",
+    "preview:console": "npm run preview --workspace @catchfly/console",
+    "lint": "oxlint",
+    "typecheck": "tsc -b",
+    "testdata": "tsx scripts/generate-test-fixture.ts",
+    "mock": "tsx scripts/generate-scale-demo.ts",
+    "smoke": "tsx scripts/smoke-queries.ts && tsx scripts/smoke-state.ts && tsx scripts/smoke-webmcp.ts && tsx scripts/smoke-import.ts && tsx scripts/smoke-analysis.ts && tsx scripts/smoke-sessions.ts && tsx scripts/smoke-telemetry.ts && tsx scripts/smoke-release-comparison.ts && tsx scripts/smoke-console-tools.ts && tsx scripts/smoke-console-evals.ts && tsx scripts/smoke-api.ts && tsx scripts/smoke-accounts.ts && tsx scripts/smoke-sdk.ts",
+    "evals": "tsx scripts/run-evals.ts",
+    "postinstall": "patch-package",
+    "migrate": "tsx scripts/migrate.ts",
+    "seed": "tsx scripts/generate-scale-demo.ts --write",
+    "smoke:api": "tsx scripts/smoke-api.ts",
+    "smoke:accounts": "tsx scripts/smoke-accounts.ts",
+    "smoke:sdk": "tsx scripts/smoke-sdk.ts",
+    "serve": "tsx scripts/serve.ts",
+    "catchfly": "node packages/cli/dist/index.js",
+    "retention": "tsx scripts/retention.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.1.0",
+    "oxlint": "^1.79.0",
+    "patch-package": "^8.0.1",
+    "tsx": "^4.20.6",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.2",
+    "webmcp-evals": "^0.0.3"
+  },
+  "dependencies": {
+    "@catchfly/core": "*",
+    "@catchfly/eval-adapters": "*",
+    "jose": "^6.2.10",
+    "pg": "^8.23.0"
+  }
+}

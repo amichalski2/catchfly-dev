@@ -1,0 +1,344 @@
+.release-count {
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.release-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-5);
+}
+
+.release-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  box-shadow:
+    var(--edge-light),
+    var(--shadow-sm);
+  transition: box-shadow 160ms ease-out;
+}
+
+.release-card:hover {
+  box-shadow:
+    var(--edge-light),
+    var(--shadow);
+}
+
+/* Nothing sits in the flow any more: the plate is the picture, and the mark is
+   pinned to its corner. */
+.release-plate {
+  position: relative;
+  min-height: 7.25rem;
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--surface-sunken);
+  background-position: center 78%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Out of the flow, so the number can centre on the whole plate rather than on
+   whatever space the mark leaves. The plate is a watercolour, so the mark needs
+   its own ground to sit on. */
+.release-plate .status-mark {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  padding: 4px;
+  background: rgba(255, 253, 249, 0.82);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+
+.release-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+.release-title {
+  font-size: var(--text-lg);
+  line-height: 1.25;
+}
+
+.release-figures {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-1);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.release-figure {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.release-figure-label {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.release-figure-value {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+
+.release-open {
+  align-self: flex-start;
+  margin-top: var(--space-1);
+}
+
+@media (max-width: 1180px) {
+  .release-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .release-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* --- release history ------------------------------------------------ */
+
+.rhist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.rhist-plot {
+  position: relative;
+}
+
+.rhist-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.rhist-grid,
+.rhist-cycle {
+  stroke: var(--border);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.rhist-cycle {
+  stroke-dasharray: 2 6;
+}
+
+.rhist-reference {
+  stroke: var(--border-strong);
+  stroke-width: 1;
+  stroke-dasharray: 3 5;
+  vector-effect: non-scaling-stroke;
+}
+
+.rhist-line {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-opacity: 0.85;
+  vector-effect: non-scaling-stroke;
+}
+
+.rhist-facet-fixed .rhist-line {
+  stroke: var(--fixed);
+}
+
+.rhist-facet-regressed .rhist-line {
+  stroke: var(--regressed);
+}
+
+.rhist-dot {
+  stroke: var(--surface-raised);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.rhist-facet-fixed .rhist-dot {
+  fill: var(--fixed);
+}
+
+.rhist-facet-regressed .rhist-dot {
+  fill: var(--regressed);
+}
+
+.rhist-ytick,
+.rhist-cycle-label {
+  font-family: var(--font-sans);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-faint);
+}
+
+.rhist-ytick {
+  text-anchor: end;
+}
+
+.rhist-series {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  fill: var(--text-muted);
+}
+
+.rhist-series-value {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-secondary);
+}
+
+.rhist-hits {
+  position: absolute;
+  inset: 0;
+}
+
+.rhist-hit {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transform: translateX(-50%);
+}
+
+.rhist-hit.is-hovered::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background: var(--border);
+}
+
+.rhist-hit:disabled {
+  cursor: default;
+}
+
+.rhist-axis {
+  position: relative;
+  height: 0.9rem;
+}
+
+.rhist-tick {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+.rhist-tick.is-hovered {
+  color: var(--text-secondary);
+}
+
+.rhist-tip {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  white-space: nowrap;
+  padding: 5px var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface-glass-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+/* The mockup's shape: the three newest releases beside the whole timeline, so
+   "what shipped last" and "what the run of releases looks like" read together. */
+.release-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: stretch;
+}
+
+.release-row > .panel {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.release-row > .panel > .panel-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Three cards inside half a screen. The figures stop sitting side by side —
+   at this width "▼ 4.5 pts vs release 15" wrapped onto "pts" alone — and the
+   title reserves two lines so the three cards keep their rows aligned. */
+.release-row .release-cards {
+  gap: var(--space-3);
+}
+
+.release-row .release-figures {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.release-row .release-title {
+  min-height: 2.5em;
+}
+
+.release-row .release-plate {
+  min-height: 5.25rem;
+  padding: var(--space-2) var(--space-3);
+}
+
+.release-row .release-card-body {
+  gap: var(--space-1);
+  padding: var(--space-3);
+}
+
+@media (max-width: 1400px) {
+  .release-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .release-row .release-plate {
+    min-height: 7.25rem;
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .release-row .release-card-body {
+    gap: var(--space-2);
+    padding: var(--space-4);
+  }
+
+  /* Full width again, so the figures fit side by side and the title needs no
+     reserved second line. */
+  .release-row .release-figures {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .release-row .release-title {
+    min-height: 0;
+  }
+}

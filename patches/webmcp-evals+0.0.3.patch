@@ -1,0 +1,13 @@
+diff --git a/node_modules/webmcp-evals/dist/evaluator/browser.js b/node_modules/webmcp-evals/dist/evaluator/browser.js
+index f3604f8..28ceb56 100644
+--- a/node_modules/webmcp-evals/dist/evaluator/browser.js
++++ b/node_modules/webmcp-evals/dist/evaluator/browser.js
+@@ -113,7 +113,7 @@ export async function launchBrowser() {
+     return await puppeteer.launch({
+         executablePath,
+         headless: true,
+-        args: PUPPETEER_FLAGS,
++        args: [...PUPPETEER_FLAGS],
+     });
+ }
+ /**

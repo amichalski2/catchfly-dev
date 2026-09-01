@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: catchfly
+      POSTGRES_USER: catchfly
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-catchfly-local}
+    volumes:
+      - catchfly-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catchfly -d catchfly"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  catchfly:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://catchfly:${POSTGRES_PASSWORD:-catchfly-local}@db:5432/catchfly
+      DATABASE_URL_UNPOOLED: postgresql://catchfly:${POSTGRES_PASSWORD:-catchfly-local}@db:5432/catchfly
+      DATABASE_SSL: disable
+      CATCHFLY_ADMIN_KEY: ${CATCHFLY_ADMIN_KEY:?Set CATCHFLY_ADMIN_KEY}
+      CATCHFLY_AUTH_MODE: ${CATCHFLY_AUTH_MODE:-none}
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET:-}
+      PORT: 8888
+    ports:
+      - "${CATCHFLY_PORT:-8888}:8888"
+
+volumes:
+  catchfly-data:

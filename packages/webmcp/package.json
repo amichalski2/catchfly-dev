@@ -1,0 +1,14 @@
+{
+  "name": "@catchfly/webmcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The WebMCP surface: the document.modelContext contract, tool-group registration and result shaping.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*.ts": "./src/*.ts"
+  },
+  "dependencies": {
+    "@catchfly/core": "*"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "@catchfly/sdk",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Non-blocking telemetry SDK for instrumenting WebMCP applications with Catchfly.",
+  "files": ["dist"],
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": { "build": "tsc -p tsconfig.build.json" },
+  "publishConfig": { "access": "public" }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "@catchfly/eval-adapters",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Adapters that map external eval-runner reports into the Catchfly data model.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*.ts": "./src/*.ts"
+  },
+  "dependencies": {
+    "@catchfly/core": "*"
+  }
+}

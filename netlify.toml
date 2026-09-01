@@ -1,0 +1,37 @@
+[build]
+  command = "npm run build"
+  publish = "apps/web/dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Server-side endpoints. They import the workspace packages directly, so they
+# stay at the repo root rather than inside the web app.
+[functions]
+  directory = "netlify/functions"
+  # Functions import the shared workspace packages at runtime. Make the
+  # bundler explicit so those imports are traced from the repository root and
+  # bundled into each serverless artifact instead of being left as unresolved
+  # workspace symlinks in production.
+  node_bundler = "esbuild"
+
+# Apply each environment's retention policy every day at midnight UTC.
+[functions."retention-scheduled"]
+  schedule = "@daily"
+
+# Without this, `netlify dev` finds several workspaces and several plausible
+# frameworks, and stops to ask. Naming the command settles both.
+[dev]
+  command = "npm run dev --workspace @catchfly/web"
+  targetPort = 5173
+  publish = "apps/web/dist"
+  framework = "#custom"
+  autoLaunch = false
+
+# The console now lives on a path, not only in the hash, so an unknown path is a
+# route rather than a missing file. Functions declare their own `config.path`
+# and are matched before this, so /api/* is unaffected.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

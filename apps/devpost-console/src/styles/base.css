@@ -1,0 +1,490 @@
+/**
+ * The Devpost Review Console's own look.
+ *
+ * Deliberately nothing like Catchfly: this is a different fictional product,
+ * and in the demo the two appear side by side. Where Catchfly is soft, sage and
+ * botanical, the console is a working desk — paper-white, dense, ink-on-card,
+ * with one electric accent that only ever marks *action*.
+ *
+ * Colour carries exactly three meanings here, and never decoration:
+ *   accent  — something an agent or a reviewer did
+ *   flag    — something wrong with a submission
+ *   listed  — something chosen
+ */
+
+:root {
+  --paper: #f7f6f3;
+  --card: #ffffff;
+  --ink: #16161a;
+  --ink-soft: #55555f;
+  --ink-faint: #8a8a95;
+  --rule: #e2e0da;
+  --rule-strong: #cbc8c0;
+
+  --accent: #4338ca;
+  --accent-tint: #eeecfb;
+  --flag: #b4232b;
+  --flag-tint: #fbeceb;
+  --listed: #1c7355;
+  --listed-tint: #e7f4ef;
+
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --sans: 'Space Grotesk', system-ui, sans-serif;
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --radius: 6px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+code,
+.mono {
+  font-family: var(--mono);
+  font-size: 0.92em;
+}
+
+/* --- shell ------------------------------------------------------------ */
+
+.console {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.masthead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--card);
+  border-bottom: 1px solid var(--rule-strong);
+}
+
+.masthead h1 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.masthead .sub {
+  color: var(--ink-faint);
+  font-size: 12px;
+}
+
+.masthead .spacer {
+  flex: 1;
+}
+
+.badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 2px var(--sp-2);
+  border-radius: 999px;
+  border: 1px solid var(--rule-strong);
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.badge.is-live {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-tint);
+}
+
+.badge.is-off {
+  border-style: dashed;
+}
+
+/* Three columns: what there is, what is open, what has happened. */
+.desk {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr) 300px;
+  gap: 1px;
+  background: var(--rule);
+  min-height: 0;
+}
+
+.column {
+  background: var(--paper);
+  padding: var(--sp-4);
+  overflow-y: auto;
+  max-height: calc(100vh - 58px);
+}
+
+@media (max-width: 1100px) {
+  .desk {
+    grid-template-columns: 1fr;
+  }
+  .column {
+    max-height: none;
+  }
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: block;
+  margin-bottom: var(--sp-2);
+}
+
+/* --- list ------------------------------------------------------------- */
+
+.search {
+  width: 100%;
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--card);
+  font: inherit;
+  margin-bottom: var(--sp-3);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1);
+  margin-bottom: var(--sp-3);
+}
+
+.chip {
+  border: 1px solid var(--rule-strong);
+  background: var(--card);
+  color: var(--ink-soft);
+  border-radius: 999px;
+  padding: 2px var(--sp-3);
+  font-size: 12px;
+}
+
+.chip.is-on {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.entries {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.entry {
+  text-align: left;
+  width: 100%;
+  border: 1px solid var(--rule);
+  border-left: 3px solid transparent;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: var(--sp-2) var(--sp-3);
+  display: block;
+}
+
+.entry:hover {
+  border-color: var(--rule-strong);
+}
+
+.entry.is-open {
+  border-left-color: var(--accent);
+  background: var(--accent-tint);
+}
+
+.entry .id {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+
+.entry .title {
+  font-weight: 500;
+}
+
+.entry .meta {
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+.entry .marks {
+  display: inline-flex;
+  gap: var(--sp-1);
+  margin-left: var(--sp-1);
+}
+
+.mark {
+  font-size: 10px;
+  font-family: var(--mono);
+  padding: 0 5px;
+  border-radius: 3px;
+}
+
+.mark.flag {
+  background: var(--flag-tint);
+  color: var(--flag);
+}
+
+.mark.listed {
+  background: var(--listed-tint);
+  color: var(--listed);
+}
+
+.mark.scored {
+  background: var(--accent-tint);
+  color: var(--accent);
+}
+
+/* --- detail ----------------------------------------------------------- */
+
+.sheet {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: var(--sp-5);
+}
+
+.sheet h2 {
+  margin: 0 0 var(--sp-1);
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+
+.sheet .byline {
+  color: var(--ink-faint);
+  font-size: 13px;
+  margin: 0 0 var(--sp-4);
+}
+
+.prose {
+  margin: 0 0 var(--sp-4);
+  max-width: 62ch;
+}
+
+.prose mark {
+  background: #fde68a;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+.readme {
+  font-family: var(--mono);
+  font-size: 12px;
+  white-space: pre-wrap;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: var(--sp-3);
+  max-height: 220px;
+  overflow: auto;
+}
+
+.facts {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--sp-4);
+}
+
+.facts th,
+.facts td {
+  text-align: left;
+  padding: var(--sp-2) 0;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+  font-weight: 400;
+}
+
+.facts th {
+  width: 34%;
+  color: var(--ink-faint);
+  font-size: 12px;
+}
+
+.verdict {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.verdict.pass {
+  color: var(--listed);
+}
+
+.verdict.fail {
+  color: var(--flag);
+}
+
+.scorerow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-1) 0;
+}
+
+.scorerow .name {
+  flex: 1;
+  color: var(--ink-soft);
+}
+
+.scorebox {
+  font-family: var(--mono);
+  min-width: 34px;
+  text-align: center;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  padding: 1px var(--sp-2);
+  background: var(--paper);
+  color: var(--ink-faint);
+}
+
+.scorebox.is-set {
+  border-color: var(--accent);
+  background: var(--accent-tint);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+
+.btn {
+  border: 1px solid var(--rule-strong);
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: var(--sp-2) var(--sp-3);
+  color: var(--ink);
+}
+
+.btn:hover {
+  border-color: var(--ink-faint);
+}
+
+.btn.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.empty {
+  color: var(--ink-faint);
+  text-align: center;
+  padding: var(--sp-6) var(--sp-4);
+  border: 1px dashed var(--rule-strong);
+  border-radius: var(--radius);
+}
+
+/* --- rail ------------------------------------------------------------- */
+
+.rail-block {
+  margin-bottom: var(--sp-5);
+}
+
+.rail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.rail-list li {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: var(--sp-2);
+  font-size: 12px;
+}
+
+.who {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 0 4px;
+  border-radius: 3px;
+  border: 1px solid var(--rule-strong);
+  color: var(--ink-faint);
+}
+
+.who.agent {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-tint);
+}
+
+/* The activity strip: the thing to point a camera at. */
+.activity {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.activity li {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: var(--sp-1) var(--sp-2);
+  border-left: 2px solid var(--rule-strong);
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.activity li.agent {
+  border-left-color: var(--accent);
+  background: var(--accent-tint);
+  color: var(--ink);
+}
+
+.activity li.failed {
+  border-left-color: var(--flag);
+  background: var(--flag-tint);
+  color: var(--flag);
+}
+
+/* A brief flash when an agent changes something, so the change is noticed
+   rather than discovered. */
+@keyframes touched {
+  from {
+    background: var(--accent-tint);
+  }
+  to {
+    background: transparent;
+  }
+}
+
+.flash {
+  animation: touched 1.1s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flash {
+    animation: none;
+  }
+}
