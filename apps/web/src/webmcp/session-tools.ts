@@ -14,6 +14,8 @@
  */
 
 import { getDb } from '@catchfly/core/db.ts';
+import { categoryLabel } from '@catchfly/core/labels.ts';
+import { releaseEvidence } from '@catchfly/core/release-evidence.ts';
 import { toolEvalProfile, knownToolNames } from '@catchfly/core/schema-diff.ts';
 import type { SessionFilters, SessionOutcome } from '@catchfly/core/session-types.ts';
 import { isSessionsAvailable, sessionsSource } from '@catchfly/core/sessions-db.ts';
@@ -28,7 +30,7 @@ import {
 import type { ModelContextTool } from '@catchfly/webmcp/spec.ts';
 
 import { catchflyStore } from '../state/store.ts';
-import { asEnum, asOptionalString, asString, describeSharedState } from './tools.ts';
+import { asEnum, asOptionalString, asString, SEES_AND_CAN_UNDO, writeResult } from './tools.ts';
 
 const OUTCOMES: Array<SessionOutcome | 'any-failure'> = [
   'completed',
@@ -125,8 +127,9 @@ export function buildSessionTools(): ModelContextTool[] {
       title: 'Search sessions',
       description:
         'Query production sessions without touching the developer\'s view. Returns one page of ' +
-        'summaries — counts, not call bodies — newest first, with a cursor for the next page and ' +
-        'the total number of matches. Use get_session for the calls a session actually made. ' +
+        'summaries — counts, not call bodies — newest first, with a cursor for the next page, ' +
+        'the total number of matches, and selectedSessionId when the developer already has one ' +
+        'of them open. Use get_session for the calls a session actually made. ' +
         'This is also how to search trajectories: toolCalled narrows to sessions that reached ' +
         'for one tool, category to why they failed, and deploymentId to one release — combine ' +
         'the three to find the traces behind an incident, then open_session to read one.',
@@ -147,10 +150,12 @@ export function buildSessionTools(): ModelContextTool[] {
           asOptionalString(input, 'cursor') ?? null,
           limit,
         );
+        const state = catchflyStore.getState();
         return {
           ...truncated(page.sessions.map(sessionSummaryPayload)),
           matching: page.total,
           nextCursor: page.nextCursor,
+          selectedSessionId: state.view === 'session-detail' ? state.selectedSessionId : null,
         };
       },
     },
@@ -223,10 +228,12 @@ export function buildSessionTools(): ModelContextTool[] {
       name: 'compare_deployments',
       title: 'Compare deployments',
       description:
-        'What moved between two releases, per tool: call volume and execution success on each ' +
-        'side and the delta, ordered worst first, plus how the failure-category mix shifted. ' +
-        'Read the call counts alongside the deltas — a large swing on a handful of calls is not ' +
-        'the same finding as a small one on hundreds.',
+        'What moved between two releases: rateDelta is the production failure-rate change in ' +
+        'percentage points; tools lists call volume and execution success on each side with the ' +
+        'delta, ordered worst first; categories is the failure-mode mix shift; toolChanges is ' +
+        'every tool whose traffic or declared schema changed, with the manifest diff; findings is ' +
+        'the evidence chain the Releases view shows. Read the call counts alongside the deltas — ' +
+        'a large swing on a handful of calls is not the same finding as a small one on hundreds.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -251,11 +258,20 @@ export function buildSessionTools(): ModelContextTool[] {
         }
 
         const comparison = await active.compareDeployments(baselineId, candidateId);
+        const db = getDb();
+        const evidence = releaseEvidence(
+          comparison,
+          (appVersionId) => db.versionsById.get(appVersionId)?.toolManifest ?? [],
+          categoryLabel,
+        );
         return {
           baseline: deploymentPayload(comparison.baseline),
           candidate: deploymentPayload(comparison.candidate),
+          rateDelta: Number((evidence.rateDelta * 100).toFixed(2)),
           tools: comparison.tools,
           categories: comparison.categories,
+          toolChanges: evidence.toolChanges,
+          findings: evidence.findings,
         };
       },
     },
@@ -268,7 +284,8 @@ export function buildSessionTools(): ModelContextTool[] {
       description:
         'Change the session filters the developer sees, and switch them to the Sessions view. ' +
         'Patch semantics: fields you omit keep their value. Pass reset: true to clear everything ' +
-        'first. Use search_sessions instead when you only need to look.',
+        'first. Use search_sessions instead when you only need to look. Returns the resulting ' +
+        'state, including how many sessions are on screen.' + SEES_AND_CAN_UNDO,
       inputSchema: {
         type: 'object',
         properties: {
@@ -281,7 +298,7 @@ export function buildSessionTools(): ModelContextTool[] {
         catchflyStore
           .getState()
           .setSessionFilters(parseSessionFilters(input), 'agent', { reset: input.reset === true });
-        return describeSharedState();
+        return writeResult();
       },
     },
 
@@ -290,7 +307,8 @@ export function buildSessionTools(): ModelContextTool[] {
       title: 'Open a session',
       description:
         'Put one production session on the developer\'s screen, with its full trace. Also ' +
-        'registers the session-scoped tools. Returns the resulting shared state.',
+        'registers the session-scoped tools. Opening the session that is already open changes ' +
+        'nothing and reports alreadyOpen: true. Returns the resulting shared state.' + SEES_AND_CAN_UNDO,
       inputSchema: {
         type: 'object',
         properties: { sessionId: { type: 'string' } },
@@ -303,8 +321,12 @@ export function buildSessionTools(): ModelContextTool[] {
         // worse than saying the id was wrong.
         const session = await source().getSession(sessionId);
         if (!session) throw new Error(`Unknown session "${sessionId}". Call search_sessions for valid ids.`);
-        catchflyStore.getState().openSession(sessionId, 'agent');
-        return describeSharedState();
+        const state = catchflyStore.getState();
+        if (state.selectedSessionId === sessionId && state.view === 'session-detail') {
+          return writeResult({ alreadyOpen: true });
+        }
+        state.openSession(sessionId, 'agent');
+        return writeResult();
       },
     },
 
@@ -314,7 +336,7 @@ export function buildSessionTools(): ModelContextTool[] {
       description:
         'Put a tool profile on the developer\'s screen: its production behaviour across ' +
         'deployments and its schema history side by side. This is the view that shows what a ' +
-        'release changed about the tool. Returns the resulting shared state.',
+        'release changed about the tool. Returns the resulting shared state.' + SEES_AND_CAN_UNDO,
       inputSchema: {
         type: 'object',
         properties: { toolName: { type: 'string' } },
@@ -331,7 +353,7 @@ export function buildSessionTools(): ModelContextTool[] {
           }
         }
         catchflyStore.getState().openTool(toolName, 'agent');
-        return describeSharedState();
+        return writeResult();
       },
     },
   ];

@@ -261,6 +261,7 @@ export type CaseRow = {
   prompt: string;
   runId: string;
   appVersionId: string;
+  appVersionLabel: string;
   model: string;
   repeats: number;
   passes: number;
@@ -274,7 +275,7 @@ export type CaseRow = {
   costUsd: number;
 };
 
-function buildRow(run: EvalRun, evalCase: EvalCase, attempts: CaseResult[]): CaseRow {
+function buildRow(db: CatchflyDb, run: EvalRun, evalCase: EvalCase, attempts: CaseResult[]): CaseRow {
   const passes = attempts.filter((attempt) => attempt.outcome === 'pass').length;
   const errors = attempts.filter((attempt) => attempt.outcome === 'error').length;
   const categoryCounts = new Map<FailureCategory, number>();
@@ -297,6 +298,7 @@ function buildRow(run: EvalRun, evalCase: EvalCase, attempts: CaseResult[]): Cas
     prompt: evalCase.prompt,
     runId: run.id,
     appVersionId: run.appVersionId,
+    appVersionLabel: db.versionsById.get(run.appVersionId)?.label ?? run.appVersionId,
     model: run.model,
     repeats: attempts.length,
     passes,
@@ -350,7 +352,7 @@ export function filterCases(db: CatchflyDb, filters: CaseFilters = {}): CaseRow[
         continue;
       }
 
-      rows.push(buildRow(run, evalCase, attempts));
+      rows.push(buildRow(db, run, evalCase, attempts));
     }
   }
 

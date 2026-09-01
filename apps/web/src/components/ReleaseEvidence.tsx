@@ -53,6 +53,10 @@ export function ReleaseEvidence({
             ))}
           </dl>
 
+          <span className="card-cue" aria-hidden="true">
+            Open →
+          </span>
+
           <button
             type="button"
             className="release-evidence-open"

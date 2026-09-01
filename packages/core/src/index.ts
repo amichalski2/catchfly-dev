@@ -15,3 +15,5 @@ export * from './sessions-memory.ts';
 export * from './schema-diff.ts';
 export * from './eval-from-session.ts';
 export * from './product-types.ts';
+export * from './release-evidence.ts';
+export * from './incidents.ts';

@@ -7,7 +7,7 @@
  * Run with: npm run migrate
  */
 
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -15,7 +15,7 @@ import type { Client } from 'pg';
 
 import { directClient, sql } from '../netlify/functions/lib/db.ts';
 
-process.loadEnvFile?.();
+if (existsSync('.env')) process.loadEnvFile?.();
 
 const MIGRATIONS = resolve(dirname(fileURLToPath(import.meta.url)), '../db/migrations');
 

@@ -7,10 +7,16 @@
 
 .session-rail {
   position: sticky;
-  top: var(--space-4);
+  top: var(--sticky-top);
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+}
+
+/* Release rows fit in whole increments. Fill the final sub-row remainder so
+   this panel lands on the same baseline as the stream beside it. */
+.session-rail > .panel:last-child {
+  padding-bottom: var(--session-rail-fill, 0px);
 }
 
 .rail-figure {
@@ -165,22 +171,19 @@
 .release-lines-head,
 .release-line {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 3.2rem 3.4rem;
+  grid-template-columns: minmax(0, 1fr) 3.2rem 4.6rem;
   gap: var(--space-2);
   align-items: baseline;
 }
 
 .release-lines-head {
   padding: 0 var(--space-2) var(--space-1);
-  color: var(--text-faint);
-  font-size: 10px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .release-lines-head > .col-right,
 .release-line > span:not(.release-line-name) {
   text-align: right;
+  white-space: nowrap;
 }
 
 .release-line {
@@ -231,7 +234,7 @@
 }
 
 .release-line-delta.tone-flat {
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .release-lines-more {
@@ -246,11 +249,11 @@
 /* --- the stream ------------------------------------------------------ */
 
 .sessions-filters {
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
 }
 
 .sessions-filters .filterbar {
-  padding: 0 0 var(--space-3);
+  padding: 0 0 var(--space-4);
   background: none;
   border: 0;
   border-bottom: 1px solid var(--border);
@@ -270,15 +273,9 @@
 }
 
 .stream-day {
-  margin: var(--space-4) 0 var(--space-2);
-  padding-bottom: var(--space-1);
+  margin: var(--space-5) 0 var(--space-2);
+  padding-bottom: var(--space-2);
   border-bottom: 1px solid var(--border);
-  color: var(--text-muted);
-  font-family: var(--font-display);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .stream-item:first-child .stream-day {
@@ -287,52 +284,63 @@
 
 .stream-row {
   display: grid;
-  grid-template-columns: 10px 3.2rem minmax(0, 1fr) minmax(0, 11rem);
-  gap: var(--space-3);
+  grid-template-columns: 1.25rem 3.2rem minmax(0, 1fr) minmax(0, 11rem);
+  gap: var(--space-4);
   align-items: baseline;
-  padding: var(--space-2) var(--space-2) var(--space-2) 0;
-  border-bottom: 1px solid var(--border);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-2);
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 -1px 0 var(--border);
+  transition: background 120ms ease-out;
+}
+
+.stream-item:last-child .stream-row {
+  box-shadow: none;
 }
 
 .stream-row:hover {
   background: var(--surface-sunken);
+  box-shadow: none;
 }
 
 .stream-mark {
   position: relative;
-  top: 0.35em;
-  width: 8px;
-  height: 8px;
-  margin-left: 1px;
-  border-radius: 50%;
-  background: var(--mark-muted-wash);
-  box-shadow: inset 0 0 0 1px var(--border-strong);
+  top: 0.2em;
+  display: flex;
 }
 
-.stream-row.is-failed .stream-mark {
-  background: var(--regressed);
-  box-shadow: none;
+.outcome-mark-completed img,
+.outcome-mark-unknown img {
+  opacity: 0.55;
+  filter: saturate(0.7);
 }
 
-.stream-row.is-abandoned .stream-mark {
-  background: var(--surface-raised);
-  box-shadow: inset 0 0 0 2px var(--regressed);
+.outcome-mark-completed:hover img,
+.outcome-mark-unknown:hover img,
+.outcome-mark-completed:focus-visible img,
+.outcome-mark-unknown:focus-visible img {
+  opacity: 1;
 }
 
-.stream-row.is-completed .stream-mark {
-  background: none;
-  box-shadow: inset 0 0 0 1px var(--border-strong);
+.stream-mark .status-mark-tip {
+  right: auto;
+  left: calc(100% + 8px);
+  transform: translate(-4px, -50%);
+}
+
+.stream-mark .status-mark:hover .status-mark-tip,
+.stream-mark .status-mark:focus-visible .status-mark-tip {
+  transform: translate(0, -50%);
 }
 
 .stream-clock {
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-size: var(--text-xs);
 }
 
 .stream-body {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
 }
 
@@ -363,7 +371,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-size: var(--text-xs);
   line-height: 1.4;
 }
@@ -381,7 +389,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 1px;
+  gap: 3px;
   text-align: right;
 }
 
@@ -403,9 +411,9 @@
 }
 
 .stream-tool {
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--text-xs);
   overflow-wrap: anywhere;
 }
 

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 import type { CaseFilters } from '@catchfly/core/queries.ts';
 import type { SessionFilters } from '@catchfly/core/session-types.ts';
+import { getDeployments } from '@catchfly/core/sessions-db.ts';
 import type { WebMcpStatus } from '@catchfly/webmcp/spec.ts';
 
 export type ViewName =
@@ -24,14 +25,6 @@ export type ActionSource = 'human' | 'agent';
 export type Comparison = { baselineRunId: string; candidateRunId: string };
 
 export type ReleaseComparison = { baselineDeploymentId: string; candidateDeploymentId: string };
-
-export type Segment = {
-  id: string;
-  name: string;
-  filters: CaseFilters;
-  createdBy: ActionSource;
-  createdAt: string;
-};
 
 export type TraceEntry = {
   id: string;
@@ -75,7 +68,6 @@ type Snapshot = {
   sessionFilters: SessionFilters;
   /** The tool whose profile is on screen. */
   selectedToolName: string | null;
-  segments: Segment[];
 };
 
 export type CatchflyState = Snapshot & {
@@ -87,6 +79,8 @@ export type CatchflyState = Snapshot & {
   /** The deployment is fine, it just holds no projects yet. */
   isEmpty: boolean;
   authRequired: boolean;
+  demoOnly: boolean;
+  connectOpen: boolean;
   /** The signed-in user, outside Snapshot so neither undo nor an agent can revert it. */
   account: { userId: string; email: string; orgId: string | null; orgName: string | null } | null;
   /** Whether an agent in this browser can reach the page's tools. */
@@ -108,7 +102,7 @@ type Actions = {
   markReady: (comparison: Comparison | null, projectId: string) => void;
   /**
    * Replaces the active dataset. Everything positional — filters, selection,
-   * segments, undo — resets with it: those reference case and run ids that do
+   * undo — resets with it: those reference case and run ids that do
    * not exist in the dataset being switched to.
    */
   switchDataset: (
@@ -120,6 +114,9 @@ type Actions = {
   failToLoad: (message: string) => void;
   markEmpty: () => void;
   requireAuth: () => void;
+  setDemoOnly: (demoOnly: boolean, connectOpen?: boolean) => void;
+  openConnect: () => void;
+  closeConnect: () => void;
   setAccount: (account: CatchflyState['account']) => void;
   setWebMcpStatus: (status: WebMcpStatus) => void;
   /** Records that the active dataset gained a run. */
@@ -139,7 +136,6 @@ type Actions = {
   closeSession: (source?: ActionSource) => void;
   openTool: (toolName: string, source?: ActionSource) => void;
   closeTool: (source?: ActionSource) => void;
-  createSegment: (name: string, filters?: CaseFilters, source?: ActionSource) => Segment;
   undoLast: (source?: ActionSource) => boolean;
   beginToolCall: (entry: TraceEntry) => void;
   finishToolCall: (id: string, outcome: TraceOutcome) => void;
@@ -163,7 +159,6 @@ const INITIAL: Snapshot = {
   selectedSessionId: null,
   sessionFilters: {},
   selectedToolName: null,
-  segments: [],
 };
 
 function snapshotOf(state: CatchflyStore): Snapshot {
@@ -176,7 +171,6 @@ function snapshotOf(state: CatchflyStore): Snapshot {
     selectedSessionId: state.selectedSessionId,
     sessionFilters: { ...state.sessionFilters },
     selectedToolName: state.selectedToolName,
-    segments: [...state.segments],
   };
 }
 
@@ -219,6 +213,8 @@ export const useCatchflyStore = create<CatchflyStore>((set, get) => {
     loadError: null,
     isEmpty: false,
     authRequired: false,
+    demoOnly: false,
+    connectOpen: false,
     account: null,
     webmcpStatus: 'unsupported',
     datasetVersion: 0,
@@ -248,6 +244,9 @@ export const useCatchflyStore = create<CatchflyStore>((set, get) => {
     markEmpty: () => set({ ready: false, loadError: null, isEmpty: true }),
 
     requireAuth: () => set({ ready: false, loadError: null, isEmpty: false, authRequired: true }),
+    setDemoOnly: (demoOnly, connectOpen = false) => set({ demoOnly, connectOpen: demoOnly && connectOpen }),
+    openConnect: () => set({ connectOpen: true }),
+    closeConnect: () => set({ connectOpen: false }),
     setAccount: (account) => set({ account }),
 
     setWebMcpStatus: (status) => set({ webmcpStatus: status }),
@@ -319,8 +318,17 @@ export const useCatchflyStore = create<CatchflyStore>((set, get) => {
       for (const key of Object.keys(patch) as Array<keyof SessionFilters>) {
         if (patch[key] === undefined) delete sessionFilters[key];
       }
+      const deployments = getDeployments();
+      const releaseOf = (deploymentId: string): string =>
+        deployments?.status === 'ready'
+          ? (deployments.value.find((entry) => entry.id === deploymentId)?.appVersionId ?? deploymentId)
+          : deploymentId;
       const described = Object.entries(patch)
-        .map(([key, value]) => `${key}=${String(value)}`)
+        .map(([key, value]) =>
+          key === 'deploymentId' && typeof value === 'string'
+            ? `release=${releaseOf(value)}`
+            : `${key}=${String(value)}`,
+        )
         .join(', ');
       const parts = [
         ...(options?.reset === true ? ['Cleared the session filters'] : []),
@@ -352,21 +360,6 @@ export const useCatchflyStore = create<CatchflyStore>((set, get) => {
 
     closeTool: (source = 'human') =>
       apply('close_tool', source, 'Closed the tool profile', { selectedToolName: null, view: 'sessions' }),
-
-    createSegment: (name, filters, source = 'human') => {
-      const segment: Segment = {
-        id: `seg-${get().segments.length + 1}-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
-        name,
-        filters: filters ?? { ...get().filters },
-        createdBy: source,
-        createdAt: new Date().toISOString(),
-      };
-      apply('create_segment', source, `Saved segment "${name}"`, {
-        segments: [...get().segments, segment],
-        filters: segment.filters,
-      });
-      return segment;
-    },
 
     beginToolCall: (entry) =>
       set((state) => ({ agentTrace: [entry, ...state.agentTrace].slice(0, TRACE_LIMIT) })),

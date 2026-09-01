@@ -1,5 +1,7 @@
 /** Shared response helpers, so every endpoint answers in the same shape. */
 
+import { projectIsWorldReadable } from './store.ts';
+
 export function json(status: number, body: Record<string, unknown>): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -21,6 +23,18 @@ export function cachedJson(status: number, body: Record<string, unknown>, maxAge
       'netlify-cdn-cache-control': `public, durable, max-age=${maxAgeSeconds}, stale-while-revalidate=${maxAgeSeconds}`,
     },
   });
+}
+
+/** Public CDN caching is reserved for the organization-less synthetic demo. */
+export async function projectJson(
+  projectId: string,
+  status: number,
+  body: Record<string, unknown>,
+  maxAgeSeconds = 300,
+): Promise<Response> {
+  return (await projectIsWorldReadable(projectId))
+    ? cachedJson(status, body, maxAgeSeconds)
+    : json(status, body);
 }
 
 export function methodNotAllowed(allowed: string): Response {

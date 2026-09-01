@@ -1,11 +1,11 @@
 {
   "name": "@catchfly/cli",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "type": "module",
   "description": "Run WebMCP evals and send the results to Catchfly.",
   "files": ["dist"],
   "bin": {
-    "catchfly": "./dist/index.js"
+    "catchfly": "dist/index.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json"

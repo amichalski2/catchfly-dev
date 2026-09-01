@@ -1,18 +1,11 @@
+import { formatCount, formatPercent } from '@catchfly/core/labels.ts';
 import type { DeploymentRollup } from '@catchfly/core/session-types.ts';
 
+import { shortDate } from './dates.ts';
 import { StatusMark, type StatusKind } from './StatusMark.tsx';
-
-const percent = (value: number) => `${(value * 100).toFixed(1)}%`;
 
 const failureRate = (deployment: DeploymentRollup): number =>
   deployment.sessionCount === 0 ? 0 : deployment.failedCount / deployment.sessionCount;
-
-const shortDate = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
 
 function ReleaseChoice({
   role,
@@ -56,7 +49,7 @@ function ReleaseChoice({
             <select value={deployment.id} onChange={(event) => onChange(event.target.value)}>
               {deployments.map((entry) => (
                 <option key={entry.id} value={entry.id} disabled={entry.id === disabledId}>
-                  {entry.appVersionId} · {shortDate(entry.deployedAt)}
+                  {entry.appVersionId} · {shortDate(entry.deployedAt, true)}
                 </option>
               ))}
             </select>
@@ -70,11 +63,11 @@ function ReleaseChoice({
         <dl className="release-choice-stats">
           <div>
             <dt>Failure rate</dt>
-            <dd>{percent(failureRate(deployment))}</dd>
+            <dd>{formatPercent(failureRate(deployment))}</dd>
           </div>
           <div>
             <dt>Sessions</dt>
-            <dd>{deployment.sessionCount.toLocaleString('en-US')}</dd>
+            <dd>{formatCount(deployment.sessionCount)}</dd>
           </div>
         </dl>
       </div>

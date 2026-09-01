@@ -3,9 +3,8 @@
  *
  * The registry itself stays React-free — it is read by WebMCP tools and Node
  * scripts too — so the binding lives here, as an external store. The version
- * counter is the snapshot: it changes when the fixture loads and again when the
- * serverless function answers for an imported run, and nothing else re-renders
- * on it.
+ * counter is the snapshot: it changes when deterministic analysis is registered,
+ * and nothing else re-renders on it.
  */
 
 import { useSyncExternalStore } from 'react';

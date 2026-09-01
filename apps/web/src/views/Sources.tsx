@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { getDb } from '@catchfly/core/db.ts';
+import { formatCount } from '@catchfly/core/labels.ts';
 import type {
   ApiKeyScope,
   EnvironmentKind,
@@ -110,9 +111,10 @@ const catchfly = new Catchfly({
   environmentId: '${environmentId}',
   apiKey: import.meta.env.VITE_CATCHFLY_INGEST_KEY,
   deployment: {
-    id: import.meta.env.VITE_DEPLOYMENT_ID,
-    appVersionId: import.meta.env.VITE_APP_VERSION
-  }
+    id: import.meta.env.VITE_CATCHFLY_DEPLOYMENT_ID,
+    appVersionId: import.meta.env.VITE_CATCHFLY_APP_VERSION
+  },
+  onError: (error) => console.error('[Catchfly]', error)
 });
 
 instrumentWebMCP(catchfly);`,
@@ -375,14 +377,28 @@ instrumentWebMCP(catchfly);`,
     <div className="stack connection-page">
       <section className="connection-status" aria-label="Connection status">
         <div>
-          <span className={`status-dot ${productionConnected ? 'is-on' : ''}`} aria-hidden="true" />
+          <img
+            className="connection-mark"
+            src={productionConnected ? '/brand/status-active.webp' : '/brand/status-unsupported.webp'}
+            alt=""
+            width={18}
+            height={18}
+            aria-hidden="true"
+          />
           <span>Production</span>
           <strong>{productionConnected ? `Live · ${age(environmentHealth?.lastEventAt ?? null)}` : 'Waiting for data'}</strong>
         </div>
         <div>
-          <span className={`status-dot ${evalsConnected ? 'is-on' : ''}`} aria-hidden="true" />
+          <img
+            className="connection-mark"
+            src={evalsConnected ? '/brand/status-active.webp' : '/brand/status-unsupported.webp'}
+            alt=""
+            width={18}
+            height={18}
+            aria-hidden="true"
+          />
           <span>Evals</span>
-          <strong>{evalsConnected ? `${runCount.toLocaleString()} runs` : 'Waiting for CI'}</strong>
+          <strong>{evalsConnected ? `${formatCount(runCount)} runs` : 'Waiting for CI'}</strong>
         </div>
       </section>
 
@@ -415,7 +431,7 @@ instrumentWebMCP(catchfly);`,
           <div className="panel-head">
             <div>
               <p className="eyebrow">Production</p>
-              <h2>Send traces</h2>
+              <h2>Production connection</h2>
               <p className="muted">Install the SDK once. New sessions appear as they happen.</p>
             </div>
             <span className={`pill ${productionConnected ? 'pill-pass' : 'pill-warn'}`}>
@@ -459,7 +475,7 @@ instrumentWebMCP(catchfly);`,
           <div className="panel-head">
             <div>
               <p className="eyebrow">CI</p>
-              <h2>Run evals</h2>
+              <h2>Eval connection</h2>
               <p className="muted">One command runs the WebMCP suite and sends the result here.</p>
             </div>
             <span className={`pill ${evalsConnected ? 'pill-pass' : 'pill-warn'}`}>

@@ -19,6 +19,27 @@ export const CATEGORY_LABELS: Record<FailureCategory, string> = {
   error: 'Execution error',
 };
 
+const COUNT_FORMAT = new Intl.NumberFormat('en-US');
+const MINUS = '\u2212';
+
+export function formatCount(value: number): string {
+  return COUNT_FORMAT.format(value);
+}
+
+export function signed(value: number, digits = 0): string {
+  const magnitude = Math.abs(value).toFixed(digits);
+  if (Number(magnitude) === 0) return `\u00b1${magnitude}`;
+  return value > 0 ? `+${magnitude}` : `${MINUS}${magnitude}`;
+}
+
+export function formatPoints(deltaPoints: number): string {
+  return `${signed(deltaPoints, 1)} pts`;
+}
+
+export function formatPercent(rate: number, digits = 1): string {
+  return `${(rate * 100).toFixed(digits)}%`;
+}
+
 export function categoryLabel(category: string | undefined): string {
   if (!category) return '—';
   return CATEGORY_LABELS[category as FailureCategory] ?? category;

@@ -2,6 +2,8 @@ import { useState } from 'react';
 
 import type { IncidentTimelinePoint } from '@catchfly/core/types.ts';
 
+import { shortDate } from './dates.ts';
+
 const VIEW_W = 1000;
 const PAD_L = 40;
 const PAD_R = 132;
@@ -30,9 +32,6 @@ const valueOf = (point: IncidentTimelinePoint, key: FacetKey) =>
 
 const percent = (value: number) => `${(value * 100).toFixed(1)}%`;
 const tick = (value: number) => `${Math.round(value * 100)}%`;
-
-const shortDate = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 
 function scale(values: number[], top: number, height: number) {
   const lo = Math.min(...values);
@@ -211,6 +210,7 @@ export function ReleaseHistory({ timeline, opening, onSelect, selectable, shape 
                 className={`rhist-hit${hovered === index ? ' is-hovered' : ''}`}
                 style={{ left: `${(x(index) / VIEW_W) * 100}%`, width: `${(step / VIEW_W) * 100}%` }}
                 disabled={!enabled || opening !== null}
+                title={enabled ? undefined : `Release ${String(index + 1).padStart(2, '0')} · ${point.scenarioLabel} · no incident to open`}
                 aria-label={`Release ${String(index + 1).padStart(2, '0')} — ${point.appVersionLabel}`}
                 onMouseEnter={() => setHovered(index)}
                 onMouseLeave={() => setHovered((current) => (current === index ? null : current))}

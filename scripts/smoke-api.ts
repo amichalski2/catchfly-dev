@@ -13,7 +13,7 @@
  * Run with: npm run smoke:api
  */
 
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
 import type {
   DeploymentRollup,
@@ -26,6 +26,8 @@ import type { CatchflyDataset, IncidentOverview } from '@catchfly/core/types.ts'
 import casesHandler from '../netlify/functions/cases.ts';
 import datasetHandler from '../netlify/functions/dataset.ts';
 import deploymentsHandler from '../netlify/functions/deployments.ts';
+import evalCasesHandler from '../netlify/functions/eval-cases.ts';
+import evalSuiteHandler from '../netlify/functions/eval-suite.ts';
 import incidentOverviewHandler from '../netlify/functions/incident-overview.ts';
 import dataPolicyHandler from '../netlify/functions/data-policy.ts';
 import environmentsHandler from '../netlify/functions/environments.ts';
@@ -45,7 +47,7 @@ import sessionsHandler from '../netlify/functions/sessions.ts';
 import toolProfileHandler from '../netlify/functions/tool-profile.ts';
 import { CHROME_REPORT_PATH } from './test-io.ts';
 
-process.loadEnvFile?.();
+if (existsSync('.env')) process.loadEnvFile?.();
 
 if (!isDatabaseConfigured()) {
   console.log('\n\x1b[33mNo DATABASE_URL configured — skipping the API checks.\x1b[0m\n');
@@ -89,7 +91,12 @@ const badMethod = await datasetHandler(
 check('DELETE on a read endpoint is refused', badMethod.status === 405);
 
 console.log('\n\x1b[1mGET /api/projects/:id/dataset\x1b[0m');
-const missing = await datasetHandler(new Request(url('/api/projects/nope/dataset')), params('nope'));
+const missing = await datasetHandler(
+  new Request(url('/api/projects/nope/dataset'), {
+    ...(KEY ? { headers: { 'x-catchfly-key': KEY } } : {}),
+  }),
+  params('nope'),
+);
 check('unknown project is a 404', missing.status === 404);
 
 console.log('\n\x1b[1mGET /api/projects/:id/incident-overview\x1b[0m');
@@ -98,6 +105,10 @@ const incidentResponse = await incidentOverviewHandler(
   params('devpost-review-scale'),
 );
 check('answers 200 for the investigation lab', incidentResponse.status === 200);
+check(
+  'public synthetic reads may use the durable CDN cache',
+  incidentResponse.headers.get('netlify-cdn-cache-control')?.includes('public') === true,
+);
 const incidentBody = (await incidentResponse.json()) as { overview: IncidentOverview };
 check(
   'summarises the full world without result bodies',
@@ -191,7 +202,12 @@ if (!KEY) {
 
   // The point of persistence: read it back through the other endpoint.
   const readBack = (await (
-    await datasetHandler(new Request(url(`/api/projects/${TEST_PROJECT}/dataset`)), params(TEST_PROJECT))
+    await datasetHandler(
+      new Request(url(`/api/projects/${TEST_PROJECT}/dataset`), {
+        headers: { 'x-catchfly-key': KEY },
+      }),
+      params(TEST_PROJECT),
+    )
   ).json()) as CatchflyDataset;
   check(
     'the imported run is queryable afterwards',
@@ -201,7 +217,12 @@ if (!KEY) {
 
   await importOnce();
   const again = (await (
-    await datasetHandler(new Request(url(`/api/projects/${TEST_PROJECT}/dataset`)), params(TEST_PROJECT))
+    await datasetHandler(
+      new Request(url(`/api/projects/${TEST_PROJECT}/dataset`), {
+        headers: { 'x-catchfly-key': KEY },
+      }),
+      params(TEST_PROJECT),
+    )
   ).json()) as CatchflyDataset;
   check(
     're-import replaces rather than duplicates',
@@ -273,7 +294,7 @@ if (!KEY) {
     check('deduplicates retried event ids without a batch key', duplicate.status === 202 && duplicateBody.duplicates === 4, String(duplicateBody.duplicates));
 
     const projected = await sessionDetailHandler(
-      new Request(url(`/api/projects/${TEST_PROJECT}/sessions/${sessionId}`)),
+      new Request(url(`/api/projects/${TEST_PROJECT}/sessions/${sessionId}`), { headers: adminHeaders }),
       { params: { projectId: TEST_PROJECT, sessionId } },
     );
     const projectedBody = (await projected.json()) as { session: Session };
@@ -282,14 +303,14 @@ if (!KEY) {
       !('authorization' in (projectedBody.session.toolCalls[0]?.arguments ?? {})));
 
     const health = await sourcesHandler(
-      new Request(url(`/api/projects/${TEST_PROJECT}/sources`)),
+      new Request(url(`/api/projects/${TEST_PROJECT}/sources`), { headers: adminHeaders }),
       params(TEST_PROJECT),
     );
     const healthBody = (await health.json()) as { sources: { environments: Array<{ acceptedEvents: number }> } };
     check('reports source health from ingest batches', health.status === 200 && healthBody.sources.environments[0]?.acceptedEvents >= 4);
 
     const overview = await projectOverviewHandler(
-      new Request(url(`/api/projects/${TEST_PROJECT}/overview`)),
+      new Request(url(`/api/projects/${TEST_PROJECT}/overview`), { headers: adminHeaders }),
       params(TEST_PROJECT),
     );
     const overviewBody = (await overview.json()) as { overview: { sessions: { total: number }; findings: unknown[] } };
@@ -383,7 +404,9 @@ if (!scaleSeeded) {
   check('covers both incident cycles', rollups.deployments[0]?.id === 'scale-deploy-01' && rollups.deployments[17]?.id === 'scale-deploy-18');
 
   const unknownProject = await deploymentsHandler(
-    new Request(url('/api/projects/nope/deployments')),
+    new Request(url('/api/projects/nope/deployments'), {
+      ...(KEY ? { headers: { 'x-catchfly-key': KEY } } : {}),
+    }),
     params('nope'),
   );
   check('an unknown project is 404', unknownProject.status === 404);
@@ -496,6 +519,27 @@ if (!scaleSeeded) {
       params(TEST_PROJECT),
     );
     check('a valid case is created', created.status === 201, `${created.status}`);
+
+    const privateCases = await evalCasesHandler(
+      new Request(url(`/api/projects/${TEST_PROJECT}/eval-cases`), { headers }),
+      params(TEST_PROJECT),
+    );
+    check('private project reads are never cached publicly', privateCases.headers.get('cache-control') === 'no-store');
+    check('private project reads set no durable CDN cache header', !privateCases.headers.has('netlify-cdn-cache-control'));
+
+    const suiteWithoutKey = await evalSuiteHandler(
+      new Request(url(`/api/projects/${TEST_PROJECT}/eval-suite`)),
+      params(TEST_PROJECT),
+    );
+    check('pulling a private eval suite requires credentials', suiteWithoutKey.status === 401);
+
+    const suiteResponse = await evalSuiteHandler(
+      new Request(url(`/api/projects/${TEST_PROJECT}/eval-suite`), { headers }),
+      params(TEST_PROJECT),
+    );
+    const suite = (await suiteResponse.json()) as { evals: Array<{ name: string; messages: unknown[]; expectedCall: unknown[] }> };
+    check('exports the reviewed project suite', suiteResponse.status === 200 && suite.evals.some((entry) => entry.name === minted.name));
+    check('exports Chrome-compatible prompts and expectations', suite.evals.every((entry) => entry.messages.length > 0 && entry.expectedCall.length > 0));
 
     const stored = await loadDataset(TEST_PROJECT);
     const readBackCase = stored?.cases.find((entry) => entry.caseId === minted.caseId);

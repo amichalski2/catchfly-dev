@@ -15,7 +15,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-6);
+  gap: var(--space-4);
   padding: var(--space-5) var(--space-2);
   /* The same frosted paper as a card, run the full height of the rail: the
      page wash carries on behind it, blurred, and the sheet's own tooth sits
@@ -47,6 +47,13 @@
   flex: none;
 }
 
+.sidebar-divider {
+  width: 3.375rem;
+  height: 1px;
+  flex: none;
+  background: var(--border);
+}
+
 /* Turned out of the rail — it is a card, and the rail is 5.5rem wide. It
    reads against the page title instead, where the reader is already looking. */
 .project-switch {
@@ -55,7 +62,7 @@
   align-items: flex-end;
   gap: var(--space-1);
   flex: none;
-  max-width: 16rem;
+  max-width: 20rem;
   text-align: right;
 }
 
@@ -63,28 +70,17 @@
   color: var(--text);
   font-size: var(--text-sm);
   line-height: 1.35;
+  text-wrap: balance;
 }
 
 .project-switch select {
   width: 100%;
   min-width: 12rem;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface-raised);
-  color: var(--text);
-  font: inherit;
-  font-size: var(--text-sm);
-  cursor: pointer;
-}
-
-.project-switch select:hover {
-  border-color: var(--text-faint);
 }
 
 .project-origin {
   width: fit-content;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-size: var(--text-xs);
   line-height: 1.4;
 }
@@ -98,23 +94,41 @@
 
 .sidebar-primary {
   flex: 1;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .sidebar-utility {
   flex: none;
 }
 
-/* Icon-only, so the target is the whole width of the rail rather than the
-   glyph — a 54px picture is not something to ask anyone to hit. */
 .nav-item {
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
   flex: none;
   width: 100%;
-  height: 4.5rem;
+  padding: var(--space-2) 0 var(--space-3);
   border-radius: var(--radius);
   color: var(--text-secondary);
+}
+
+.nav-label {
+  font-size: var(--text-xs);
+  line-height: 1.2;
+  color: var(--text-muted);
+  transition: color 120ms ease;
+}
+
+.nav-item:hover .nav-label,
+.nav-item:focus-visible .nav-label {
+  color: var(--text-secondary);
+}
+
+.nav-item.is-active .nav-label {
+  color: var(--text);
+  font-weight: 600;
 }
 
 /* Resting icons are drained rather than greyed: the plates are drawn in the
@@ -155,8 +169,19 @@
 
 .main {
   position: relative;
-  overflow: hidden;
-  padding: var(--space-6) var(--space-6) var(--space-7);
+  min-width: 0;
+  overflow: clip;
+  padding: 0 var(--space-6) var(--space-7);
+}
+
+.shell-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  margin: 0 calc(-1 * var(--space-6)) var(--space-4);
+  background: var(--surface-glass-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
 }
 
 .main-head {
@@ -164,7 +189,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-5);
-  margin-bottom: var(--space-4);
+  padding: var(--space-5) var(--space-6) var(--space-3);
 }
 
 .content {
@@ -291,6 +316,30 @@
   }
 }
 
+.panel-plate {
+  position: absolute;
+  right: -0.25rem;
+  bottom: -0.5rem;
+  z-index: 0;
+  width: 12rem;
+  height: auto;
+  opacity: 0.9;
+  pointer-events: none;
+  user-select: none;
+}
+
+.panel-plate ~ .panel-head,
+.panel-plate ~ .panel-body {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 1180px) {
+  .panel-plate {
+    display: none;
+  }
+}
+
 .boot {
   display: grid;
   gap: var(--space-2);
@@ -365,6 +414,12 @@
   width: 16px;
   height: 16px;
   flex: none;
+}
+
+.session-status.is-degraded .session-mark {
+  border-radius: 50%;
+  outline: 2px dashed var(--regressed);
+  outline-offset: 1px;
 }
 
 .session-action {
@@ -455,7 +510,7 @@
     overflow-y: visible;
     flex-direction: row;
     align-items: center;
-    gap: var(--space-4);
+    gap: var(--space-2);
     padding: var(--space-2) var(--space-4);
     border-right: none;
     border-bottom: 1px solid var(--border);
@@ -464,6 +519,11 @@
 
   .brand-mark {
     width: 2.625rem;
+  }
+
+  .sidebar-divider {
+    width: 1px;
+    height: 2.625rem;
   }
 
   .sidebar nav {
@@ -482,12 +542,11 @@
   }
 
   .nav-item {
-    width: 4.125rem;
+    width: 5.25rem;
   }
 
-  /* The rule marks the leading edge, which is the top once the rail turns. */
-  .nav-item.is-active {
-    box-shadow: inset 0 2px 0 var(--regressed);
+  .shell-topbar {
+    position: static;
   }
 
   .main-head {
@@ -643,6 +702,14 @@
     padding: var(--space-4) var(--space-3) var(--space-6);
   }
 
+  .shell-topbar {
+    margin-inline: calc(-1 * var(--space-3));
+  }
+
+  .main-head {
+    padding-inline: var(--space-3);
+  }
+
   .sidebar {
     gap: var(--space-2);
     padding: var(--space-2) var(--space-3);
@@ -650,6 +717,10 @@
 
   .brand-mark {
     width: 2rem;
+  }
+
+  .sidebar-divider {
+    height: 2rem;
   }
 
   .shell {
@@ -668,12 +739,16 @@
 
   .nav-item {
     width: 3rem;
-    height: 3.25rem;
+    padding: var(--space-1) 0;
   }
 
   .nav-item img {
     width: 2.25rem;
     height: 2.25rem;
+  }
+
+  .nav-label {
+    display: none;
   }
 
   .session {
@@ -707,5 +782,26 @@
 
   .agent-step-error {
     flex-basis: 100%;
+  }
+}
+
+.agent-touched {
+  animation: agent-touch 1.8s ease-out both;
+}
+
+@keyframes agent-touch {
+  from {
+    outline: 2px solid var(--agent);
+    outline-offset: 3px;
+  }
+  to {
+    outline: 2px solid transparent;
+    outline-offset: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-touched {
+    animation: none;
   }
 }

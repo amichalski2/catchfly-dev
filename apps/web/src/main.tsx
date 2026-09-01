@@ -14,6 +14,7 @@ import { applyHash, projectFromHash, startUrlSync } from './state/urlSync.ts';
 import { initLandingWebMcp, initWebMcp } from './webmcp/index.ts';
 import './styles/base.css';
 import './styles/product.css';
+import './styles/collab.css';
 
 const root = createRoot(document.getElementById('root')!);
 
@@ -51,9 +52,8 @@ async function boot(): Promise<void> {
     );
   });
 
-  // Failure analysis is written on demand by /api/analyze, so the page starts
-  // with none. Say so explicitly: the cluster tool waits for the registry to
-  // settle, and a registry nobody settles would leave an agent hanging.
+  // No generated analysis endpoint is part of this build. Settle the registry
+  // as unavailable so tools return deterministic evidence instead of waiting.
   setAnalysisUnavailable();
 
   if (session) {
@@ -72,8 +72,11 @@ async function boot(): Promise<void> {
       ),
     );
     if (!account.projects.some((project) => project.dataOrigin !== 'synthetic')) {
-      useCatchflyStore.getState().markEmpty();
-      return;
+      if (account.projects.length === 0) {
+        useCatchflyStore.getState().markEmpty();
+        return;
+      }
+      useCatchflyStore.getState().setDemoOnly(true, wantsSignIn);
     }
   } else {
     setProjects(await fetchProjects());

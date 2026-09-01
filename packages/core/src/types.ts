@@ -235,6 +235,8 @@ export type IncidentSummary = {
   modelCount: number;
   baselineVersionId: string;
   candidateVersionId: string;
+  baselineDeploymentId: string | null;
+  candidateDeploymentId: string | null;
   baselineRunId: string;
   candidateRunId: string;
   model: string;

@@ -22,10 +22,10 @@ import { traced } from '../apps/web/src/webmcp/traced.ts';
 import type { ModelContext, ModelContextTool } from '@catchfly/webmcp/spec.ts';
 import { buildGlobalTools } from '../apps/web/src/webmcp/tools.ts';
 import type { Deployment, Session } from '@catchfly/core/session-types.ts';
-import { configureSessionsSource, setSessionsUnavailable } from '@catchfly/core/sessions-db.ts';
+import { configureSessionsSource, ensureSessionList, setSessionsUnavailable } from '@catchfly/core/sessions-db.ts';
 import { memorySessionsSource } from '@catchfly/core/sessions-memory.ts';
-import type { EvalCase } from '@catchfly/core/types.ts';
-import { applyProse, deriveClusters, PROMPT_VERSION } from '@catchfly/core/analysis.ts';
+import type { EvalCase, IncidentOverview } from '@catchfly/core/types.ts';
+import { applyProse, deriveClusters } from '@catchfly/core/analysis.ts';
 import { setAnalysis, setAnalysisUnavailable } from '@catchfly/core/analysis-db.ts';
 import { createDb, getDb, setDb } from '@catchfly/core/db.ts';
 import { filterCases, findRegressions } from '@catchfly/core/queries.ts';
@@ -234,8 +234,20 @@ async function main(): Promise<void> {
   check('revoking a healthy group is not a failure', (await cleanGroup.settled).failed === 0);
 
   console.log('\n\x1b[1minvestigation — the demo scenario, tool calls only\x1b[0m');
-  const view = (await context.call('get_current_view')) as Record<string, unknown>;
+  const view = (await context.call('get_current_view')) as {
+    visibleCases: number;
+    view: string;
+    comparison: { baselineRunId: string; baselineLabel: string; candidateLabel: string } | null;
+    undoDepth: number;
+    revertedByHuman: boolean;
+  };
   check('get_current_view reads the shared state', view.visibleCases === 80 && view.view === 'overview');
+  check(
+    'the comparison carries the labels the picker shows, not only ids',
+    view.comparison?.baselineRunId === BASELINE && view.comparison.baselineLabel.includes(' · '),
+    view.comparison?.baselineLabel,
+  );
+  check('a fresh dashboard has nothing to undo', view.undoDepth === 0 && view.revertedByHuman === false);
 
   const regressions = (await context.call('find_regressions', {
     baselineRunId: BASELINE,
@@ -268,14 +280,14 @@ async function main(): Promise<void> {
   check('clusters default to the comparison the user is viewing', clustered.baselineRunId === BASELINE);
   check('with nothing analyzed the tool answers instead of failing', clustered.clusters === null);
 
-  // Register an analysis the way the runtime does — deterministic clusters plus
-  // prose — so the serving path is covered without committing an artefact.
+  // Register deterministic clusters with fallback prose so the serving path is
+  // covered without a model or a committed artefact.
   const derived = deriveClusters(getDb(), BASELINE, CANDIDATE);
   setAnalysis({
     version: 1,
     provenance: {
-      model: 'offline',
-      promptVersion: PROMPT_VERSION,
+      model: 'none',
+      promptVersion: 'deterministic-v1',
       generatedAt: '2026-01-01T00:00:00.000Z',
       source: 'script',
     },
@@ -315,17 +327,18 @@ async function main(): Promise<void> {
     category: topCategory.category,
     reset: true,
     view: 'cases',
-  })) as Record<string, unknown>;
+  })) as { state: { visibleCases: number; view: string; undoDepth: number } };
   const expectedVisible = filterCases(getDb(), {
     runId: CANDIDATE,
     category: topCategory.category as FailureCategory,
   }).length;
   check(
     'set_dashboard_filters narrows the shared view',
-    filtered.visibleCases === expectedVisible,
-    `${String(filtered.visibleCases)} of ${expectedVisible}`,
+    filtered.state.visibleCases === expectedVisible,
+    `${String(filtered.state.visibleCases)} of ${expectedVisible}`,
   );
-  check('dashboard switched view', filtered.view === 'cases');
+  check('dashboard switched view', filtered.state.view === 'cases');
+  check('every write answers with the state under a single key', filtered.state.undoDepth === undoBeforeFilters + 1);
   check('the human sees the agent did it', store.getState().lastAction?.source === 'agent');
   check(
     'one tool call leaves exactly one undo point',
@@ -347,8 +360,14 @@ async function main(): Promise<void> {
     runId: CANDIDATE,
     category: 'tool-selection',
     toolCalled: 'tool_gamma',
-  })) as { cases: { items: Array<{ caseId: string }>; total: number } };
+  })) as { cases: { items: Array<{ caseId: string; appVersionLabel: string }>; total: number }; coverage?: unknown };
   check('filter_cases pins the suspects without touching the UI', cases.cases.total > 0, `${cases.cases.total} cases`);
+  check(
+    'case rows carry the version label the picker shows',
+    typeof cases.cases.items[0].appVersionLabel === 'string' && cases.cases.items[0].appVersionLabel.length > 0,
+    cases.cases.items[0].appVersionLabel,
+  );
+  check('a fully loaded project reports no coverage gap', cases.coverage === undefined);
   check('reading did not change shared filters', store.getState().filters.toolCalled === undefined);
 
   console.log('\n\x1b[1mdynamic case-scoped tools\x1b[0m');
@@ -379,13 +398,27 @@ async function main(): Promise<void> {
     `${trajectory.divergence?.baselineTool} -> ${trajectory.divergence?.candidateTool}`,
   );
 
-  const segment = (await context.call('create_segment', { name: 'tool_gamma regressions' })) as {
-    segment: { createdBy: string };
+  const shownWhileOpen = (await context.call('get_case', { caseId: target })) as {
+    shownToUser: boolean;
+    runs: Array<{ attempts: Array<{ outcome: string; calls: Array<{ functionName: string; args: unknown }> }> }>;
   };
-  check('segment recorded as agent work', segment.segment.createdBy === 'agent');
-
-  const shownWhileOpen = (await context.call('get_case', { caseId: target })) as { shownToUser: boolean };
   check('an open case reads as shown to the developer', shownWhileOpen.shownToUser === true);
+  const allAttempts = shownWhileOpen.runs.flatMap((run) => run.attempts);
+  const inspected = (await context.call('inspect_selected_case')) as {
+    runs: Array<{ attempts: Array<{ outcome: string }> }>;
+  };
+  check(
+    'get_case and inspect_selected_case return the same attempts in the same shape',
+    allAttempts.length === inspected.runs.flatMap((run) => run.attempts).length &&
+      allAttempts.some((attempt) => attempt.outcome === 'pass') &&
+      typeof allAttempts[0]?.calls[0]?.functionName === 'string',
+    `${allAttempts.length} attempts`,
+  );
+  const failingOnly = (await context.call('get_case', { caseId: target, failingOnly: true })) as typeof shownWhileOpen;
+  check(
+    'failingOnly drops the passing attempts',
+    failingOnly.runs.flatMap((run) => run.attempts).every((attempt) => attempt.outcome !== 'pass'),
+  );
   await context.call('set_dashboard_filters', { view: 'overview' });
   check('navigating away released the selection', store.getState().selectedCaseId === null);
   check('scoped tools went with it', !context.tools.has('inspect_selected_case'));
@@ -428,6 +461,28 @@ async function main(): Promise<void> {
   console.log('\n\x1b[1mhuman undo of agent work\x1b[0m');
   store.getState().undoLast('human');
   check('undo reverted the last agent action', store.getState().view === 'case-detail');
+  const afterHumanUndo = (await context.call('get_current_view')) as { revertedByHuman: boolean };
+  check('the agent can read that a human reverted its work', afterHumanUndo.revertedByHuman === true);
+
+  console.log('\n\x1b[1magent undo of its own work\x1b[0m');
+  const filtersBeforeAgentUndo = JSON.stringify(store.getState().filters);
+  await context.call('set_dashboard_filters', { reset: true, category: 'sequencing', view: 'cases' });
+  const undone = (await context.call('undo_last')) as {
+    undone: boolean;
+    state: { view: string; filters: unknown; revertedByHuman: boolean; lastAction: { name: string; source: string } };
+  };
+  check(
+    'undo_last reverts the agent\'s own action',
+    undone.undone === true &&
+      undone.state.view === 'case-detail' &&
+      JSON.stringify(undone.state.filters) === filtersBeforeAgentUndo,
+  );
+  check(
+    'and is attributed to the agent, not the human',
+    undone.state.lastAction.name === 'undo' &&
+      undone.state.lastAction.source === 'agent' &&
+      undone.state.revertedByHuman === false,
+  );
 
   console.log('\n\x1b[1mcluster hand-off: agent pins one cluster for the human\x1b[0m');
   const pinned = (await context.call('set_dashboard_filters', {
@@ -435,11 +490,11 @@ async function main(): Promise<void> {
     runId: CANDIDATE,
     caseIds: topCluster?.caseIds.items ?? [],
     view: 'cases',
-  })) as { visibleCases: number };
+  })) as { state: { visibleCases: number } };
   check(
     'cluster caseIds drive the shared table',
-    pinned.visibleCases === topCluster?.cases,
-    `${pinned.visibleCases} of ${topCluster?.cases} cases`,
+    pinned.state.visibleCases === topCluster?.cases,
+    `${pinned.state.visibleCases} of ${topCluster?.cases} cases`,
   );
 
   // --- the production half ---------------------------------------------
@@ -524,6 +579,17 @@ async function main(): Promise<void> {
   check('session tools registered', context.tools.has('search_sessions'), `${sessionTools.length} tools`);
   check('no session-scoped tools before selection', !context.tools.has('inspect_selected_session'));
 
+  ensureSessionList(store.getState().sessionFilters, 10);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  const withSessions = (await context.call('get_current_view')) as {
+    visibleSessions: { shown: number; matching: number } | null;
+  };
+  check(
+    'the shared state says how many sessions the developer has on screen',
+    withSessions.visibleSessions?.shown === 4 && withSessions.visibleSessions.matching === 4,
+    JSON.stringify(withSessions.visibleSessions),
+  );
+
   const deployments = (await context.call('list_deployments')) as {
     deployments: Array<{ deploymentId: string; failureRate: number }>;
   };
@@ -569,7 +635,12 @@ async function main(): Promise<void> {
   const drift = (await context.call('compare_deployments', {
     baselineDeploymentId: 'deploy-1',
     candidateDeploymentId: 'deploy-2',
-  })) as { tools: Array<{ toolName: string; successRateDelta: number; candidateCalls: number }> };
+  })) as {
+    tools: Array<{ toolName: string; successRateDelta: number; candidateCalls: number }>;
+    rateDelta: number;
+    toolChanges: Array<{ tool: { toolName: string }; schemaChangeCount: number; callDelta: number }>;
+    findings: Array<{ id: string; action: { kind: string } }>;
+  };
   check(
     'compare_deployments ranks the worst-hit tool first',
     drift.tools[0].toolName === 'tool_beta' && drift.tools[0].successRateDelta < 0,
@@ -578,6 +649,17 @@ async function main(): Promise<void> {
   check(
     'the comparison reports call volume alongside the delta',
     typeof drift.tools[0].candidateCalls === 'number',
+  );
+  check('the failure-rate delta is reported in points', drift.rateDelta > 0, `${drift.rateDelta} pts`);
+  check(
+    'the agent gets the manifest diff the Releases view shows',
+    drift.toolChanges.some((entry) => entry.tool.toolName === 'tool_alpha' && entry.schemaChangeCount > 0),
+    drift.toolChanges.map((entry) => `${entry.tool.toolName}:${entry.schemaChangeCount}`).join(', '),
+  );
+  check(
+    'and the same evidence chain',
+    drift.findings.length > 0 && drift.findings.every((entry) => typeof entry.action.kind === 'string'),
+    drift.findings.map((entry) => entry.id).join(', '),
   );
 
   console.log('\n\x1b[1mdynamic session-scoped tools\x1b[0m');
@@ -602,9 +684,18 @@ async function main(): Promise<void> {
   check('open_session moved the shared view', store.getState().view === 'session-detail');
   check('session-scoped tools appeared', context.tools.has('create_eval_from_session'));
 
-  const inspected = (await context.call('inspect_selected_session')) as { sessionId: string; shownToUser: boolean };
-  check('inspect_selected_session follows the selection', inspected.sessionId === 's-02');
-  check('and reports that the developer is looking at it', inspected.shownToUser === true);
+  const inspectedSession = (await context.call('inspect_selected_session')) as { sessionId: string; shownToUser: boolean };
+  check('inspect_selected_session follows the selection', inspectedSession.sessionId === 's-02');
+  check('and reports that the developer is looking at it', inspectedSession.shownToUser === true);
+
+  const undoBeforeReopen = store.getState().undoStack.length;
+  const reopened = (await context.call('open_session', { sessionId: 's-02' })) as { alreadyOpen?: boolean };
+  check(
+    'opening the session that is already open changes nothing',
+    reopened.alreadyOpen === true && store.getState().undoStack.length === undoBeforeReopen,
+  );
+  const searchedWhileOpen = (await context.call('search_sessions', {})) as { selectedSessionId: string | null };
+  check('search_sessions says which result the developer already has open', searchedWhileOpen.selectedSessionId === 's-02');
 
   // The write path, against a stubbed API. The point is the shape of the case
   // the tool mints, which is what a future run will be judged against.
@@ -766,17 +857,103 @@ async function main(): Promise<void> {
   const opened = (await context.call('open_release_comparison', {
     baselineDeploymentId: 'deploy-1',
     candidateDeploymentId: 'deploy-2',
-  })) as { view: string; releaseComparison: { baselineDeploymentId: string } | null };
-  check('open_release_comparison moved the shared view', opened.view === 'releases');
-  check('and reports the pair back', opened.releaseComparison?.baselineDeploymentId === 'deploy-1');
+  })) as { state: { view: string; releaseComparison: { baselineDeploymentId: string } | null } };
+  check('open_release_comparison moved the shared view', opened.state.view === 'releases');
+  check('and reports the pair back', opened.state.releaseComparison?.baselineDeploymentId === 'deploy-1');
   check('the agent is credited', store.getState().lastAction?.source === 'agent');
   check('the human can take it back', store.getState().undoLast('human') === true);
 
+  const defaulted = (await context.call('open_release_comparison', {})) as typeof opened;
+  check(
+    'without ids it opens the two newest releases, like the navigation does',
+    defaulted.state.releaseComparison?.baselineDeploymentId === 'deploy-1' &&
+      (defaulted.state.releaseComparison as { candidateDeploymentId?: string }).candidateDeploymentId === 'deploy-2',
+  );
+  store.getState().undoLast('human');
+
+  const overviewFixture: IncidentOverview = {
+    projectId: TEST_PROJECT_ID,
+    incidentPatterns: 1,
+    affectedTools: 1,
+    evalAttempts: 10,
+    productionSessions: 4,
+    timeline: [
+      {
+        appVersionId: 'app-v1', appVersionLabel: 'v1', releasedAt: '2026-01-05T00:00:00.000Z',
+        deploymentId: 'deploy-1', scenarioId: 'control', scenarioLabel: 'control', kind: 'control',
+        evalSuccessRate: 0.9, evalAttempts: 5, productionFailureRate: 0, productionSessions: 1, avgToolLatencyMs: 100,
+      },
+      {
+        appVersionId: 'app-v2', appVersionLabel: 'v2', releasedAt: '2026-02-05T00:00:00.000Z',
+        deploymentId: 'deploy-2', scenarioId: 'arguments', scenarioLabel: 'argument contract', kind: 'regression',
+        evalSuccessRate: 0.7, evalAttempts: 5, productionFailureRate: 1, productionSessions: 3, avgToolLatencyMs: 100,
+      },
+    ],
+    incidents: [
+      {
+        id: 'arguments', title: 'Score contract loosened', kind: 'regression', tools: ['tool_beta'],
+        failureCategory: 'argument-errors', occurrences: 1, evalSuccessRateDelta: -0.2, productionFailureRateDelta: 1,
+        latencyMultiplier: 1, modelAgreement: 1, modelCount: 1, baselineVersionId: 'app-v1', candidateVersionId: 'app-v2',
+        baselineDeploymentId: null, candidateDeploymentId: null, baselineRunId: BASELINE, candidateRunId: CANDIDATE,
+        model: 'model-a', summary: 'Loosened contract.',
+      },
+      {
+        id: 'latency-decoy', title: 'Latency spike without quality loss', kind: 'decoy', tools: [],
+        failureCategory: null, occurrences: 1, evalSuccessRateDelta: 0, productionFailureRateDelta: 0,
+        latencyMultiplier: 3.3, modelAgreement: 1, modelCount: 1, baselineVersionId: 'app-v1', candidateVersionId: 'app-v2',
+        baselineDeploymentId: 'deploy-1', candidateDeploymentId: 'deploy-2', baselineRunId: BASELINE, candidateRunId: CANDIDATE,
+        model: 'model-a', summary: 'Slower, not worse.',
+      },
+    ],
+  };
+  const beforeOverview = globalThis.fetch;
+  globalThis.fetch = (async (input: Parameters<typeof fetch>[0]) => {
+    if (!String(input).includes('/incident-overview')) throw new Error(`unexpected fetch ${String(input)}`);
+    return new Response(JSON.stringify({ overview: overviewFixture }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  }) as typeof fetch;
+  const overview = (await context.call('get_incident_overview')) as {
+    regressionCount: number;
+    total: number;
+    kindCounts: Record<string, number>;
+    visibleOnScreen: string[];
+    incidents: {
+      items: Array<{
+        incidentId: string;
+        baselineDeploymentId: string | null;
+        candidateDeploymentId: string | null;
+        corroboration: { evals: boolean; production: boolean; models: number };
+      }>;
+    };
+  };
+  globalThis.fetch = beforeOverview;
+  const [regression, decoy] = overview.incidents.items;
+  check(
+    'the overview separates the regression count from the total',
+    overview.regressionCount === 1 && overview.total === 2 && overview.kindCounts.decoy === 1,
+  );
+  check(
+    'every incident carries the deployment pair the release comparison takes',
+    regression.baselineDeploymentId === 'deploy-1' && regression.candidateDeploymentId === 'deploy-2',
+  );
+  check(
+    'corroboration is computed once, with the dashboard\'s thresholds',
+    regression.corroboration.evals === true &&
+      regression.corroboration.production === true &&
+      decoy.corroboration.evals === false,
+  );
+  check(
+    'the agent knows which findings are on the developer\'s screen',
+    overview.visibleOnScreen.join(',') === 'arguments,latency-decoy',
+  );
+
   await context.call('open_tool', { toolName: 'tool_alpha' });
   check('open_tool selected a tool', store.getState().selectedToolName === 'tool_alpha');
-  const closed = (await context.call('close_tool')) as { view: string; selectedToolName: string | null };
-  check('close_tool returns to the session list', closed.view === 'sessions');
-  check('and clears the selection', closed.selectedToolName === null);
+  const closed = (await context.call('close_tool')) as { state: { view: string; selectedToolName: string | null } };
+  check('close_tool returns to the session list', closed.state.view === 'sessions');
+  check('and clears the selection', closed.state.selectedToolName === null);
 
   console.log('\n\x1b[1ma paged project, where runs boot summary-only\x1b[0m');
   const fullDataset = getDb().dataset;
@@ -793,6 +970,18 @@ async function main(): Promise<void> {
     'the trap is armed: the query layer sees no attempts at all',
     findRegressions(getDb(), BASELINE, CANDIDATE).regressedAttempts === 0,
   );
+  const partial = (await context.call('filter_cases', {})) as {
+    coverage?: { loadedRuns: number; totalRuns: number; note: string };
+  };
+  check(
+    'filter_cases tells the agent which runs its rows cover',
+    partial.coverage !== undefined &&
+      partial.coverage.totalRuns - partial.coverage.loadedRuns === 2 &&
+      partial.coverage.note.includes('summary-only'),
+    partial.coverage ? `${partial.coverage.loadedRuns} of ${partial.coverage.totalRuns}` : 'no coverage field',
+  );
+  const partialGroups = (await context.call('group_results', { groupBy: 'category', category: 'tool-selection' })) as { coverage?: unknown };
+  check('so does group_results', partialGroups.coverage !== undefined);
   const resultRequests: string[] = [];
   const beforePaged = globalThis.fetch;
   globalThis.fetch = (async (input: Parameters<typeof fetch>[0]) => {

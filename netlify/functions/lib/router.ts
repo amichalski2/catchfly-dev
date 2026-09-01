@@ -22,6 +22,7 @@ import evalCase from '../eval-case.ts';
 import evalCases from '../eval-cases.ts';
 import evalResults from '../eval-results.ts';
 import evalRuns from '../eval-runs.ts';
+import evalSuite from '../eval-suite.ts';
 import incidentOverview from '../incident-overview.ts';
 import incident from '../incident.ts';
 import incidents from '../incidents.ts';
@@ -116,6 +117,7 @@ export const ROUTES: Array<{ pattern: RegExp; keys: string[]; handler: FunctionH
     handler: evalResults as FunctionHandler,
   },
   { pattern: /^\/api\/projects\/([^/]+)\/eval-runs$/, keys: ['projectId'], handler: evalRuns as FunctionHandler },
+  { pattern: /^\/api\/projects\/([^/]+)\/eval-suite$/, keys: ['projectId'], handler: evalSuite as FunctionHandler },
   {
     pattern: /^\/api\/projects\/([^/]+)\/eval-cases\/([^/]+)$/,
     keys: ['projectId', 'caseId'],
@@ -198,9 +200,16 @@ export async function handleApi(req: IncomingMessage, res: ServerResponse): Prom
   }
 
   const match = route.pattern.exec(path)!;
-  const params = Object.fromEntries(
-    route.keys.map((key, index) => [key, decodeURIComponent(match[index + 1])]),
-  );
+  let params: Record<string, string>;
+  try {
+    params = Object.fromEntries(
+      route.keys.map((key, index) => [key, decodeURIComponent(match[index + 1])]),
+    );
+  } catch {
+    res.writeHead(400, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ error: 'The request path contains invalid percent encoding.' }));
+    return true;
+  }
 
   const host = req.headers.host ?? 'localhost';
   let body: Buffer | undefined;

@@ -69,6 +69,16 @@ export async function projectIsReadOnly(projectId: string): Promise<boolean> {
   return Boolean(row && row.data_origin === 'synthetic' && row.generator_version);
 }
 
+/** Only the bundled, organization-less synthetic world is safe to cache publicly. */
+export async function projectIsWorldReadable(projectId: string): Promise<boolean> {
+  const { rows } = await sql().query<{ org_id: string | null; data_origin: ProjectDataOrigin }>(
+    'select org_id, data_origin from projects where id = $1',
+    [projectId],
+  );
+  const row = rows[0];
+  return Boolean(row && row.org_id === null && row.data_origin === 'synthetic');
+}
+
 export async function createProject(input: {
   id: string;
   name: string;

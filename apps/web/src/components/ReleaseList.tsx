@@ -1,21 +1,9 @@
+import { formatPercent } from '@catchfly/core/labels.ts';
+
+import { DeltaBadge } from './figures.tsx';
 import type { ReleasePoint } from './release-points.ts';
 
-const percent = (value: number) => `${(value * 100).toFixed(1)}%`;
-const points = (value: number) => `${(Math.abs(value) * 100).toFixed(1)}`;
-
-const ARROW: Record<string, string> = {
-  regression: '▲',
-  recovery: '▼',
-  control: '±',
-  decoy: '±',
-};
-
-const TONE: Record<string, string> = {
-  regression: 'regressed',
-  recovery: 'fixed',
-  control: 'flat',
-  decoy: 'flat',
-};
+const points = (value: number) => `${(value * 100).toFixed(1)} pts`;
 
 function ReleaseRow({
   point,
@@ -34,18 +22,16 @@ function ReleaseRow({
         type="button"
         className={`release-line${selected ? ' is-selected' : ''}`}
         aria-pressed={selected}
+        title={deployment.id}
         onClick={() => onSelect(selected ? undefined : deployment.id)}
       >
         <span className="release-line-name">{deployment.appVersionId}</span>
-        <span className="release-line-rate tabular">{percent(point.failureRate)}</span>
-        <span className={`release-line-delta tone-${TONE[point.status]}`}>
+        <span className="release-line-rate tabular">{formatPercent(point.failureRate)}</span>
+        <span className="release-line-delta">
           {point.failureRateDelta === null ? (
             <span className="muted">first</span>
           ) : (
-            <>
-              <span aria-hidden="true">{ARROW[point.status]}</span>{' '}
-              <span className="tabular">{points(point.failureRateDelta)}</span>
-            </>
+            <DeltaBadge value={point.failureRateDelta} format={points} direction="up-bad" />
           )}
         </span>
       </button>

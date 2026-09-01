@@ -10,17 +10,18 @@
 import { CaseField } from '../components/CaseField.tsx';
 import { DivergingBars, type DivergingDatum } from '../components/DivergingBars.tsx';
 import { FailureClusters } from '../components/FailureClusters.tsx';
-import { DeltaBadge, HeroFigure, StatTile } from '../components/figures.tsx';
-import { RegressionPreview } from '../components/RegressionPreview.tsx';
+import { RunPairPicker } from '../components/RunPairPicker.tsx';
+import { DeltaBadge } from '../components/figures.tsx';
 import { StatusMark, type StatusKind } from '../components/StatusMark.tsx';
 import { getAnalysisProvenance } from '@catchfly/core/analysis-db.ts';
-import { categoryLabel } from '@catchfly/core/labels.ts';
+import { categoryLabel, signed } from '@catchfly/core/labels.ts';
 import { activeComparison, activeRegressions, allRuns, useSelector } from '../state/selectors.ts';
 import { useAnalysisEntry } from '../state/useAnalysis.ts';
 import { useCatchflyStore } from '../state/store.ts';
 import { useAgentTouch } from '../state/useAgentTouch.ts';
 import { useComparisonEvidence } from '../state/useComparisonEvidence.ts';
 import { activateComparison } from '../data/load.ts';
+import '../styles/regressions.css';
 
 const COMPARISON_ACTIONS = ['set_comparison'] as const;
 
@@ -34,6 +35,9 @@ export function Regressions() {
   const setView = useCatchflyStore((state) => state.setView);
   const touch = useAgentTouch(COMPARISON_ACTIONS);
   const evidence = useComparisonEvidence();
+
+  const pinInCases = (next: Parameters<typeof setFilters>[0]) =>
+    setFilters(next, 'human', { view: 'cases', reset: true });
 
   if (evidence.error) return <p className="boot-error">Could not load comparison evidence: {evidence.error}</p>;
   if (!evidence.ready) return <section className="panel"><div className="panel-body muted">Loading the two runs behind this comparison…</div></section>;
@@ -74,8 +78,6 @@ export function Regressions() {
     .filter((datum) => datum.lost > 0 || datum.gained > 0)
     .sort((a, b) => b.lost - a.lost || b.gained - a.gained);
 
-  const lostTotal = diverging.reduce((sum, datum) => sum + datum.lost, 0);
-  const gainedTotal = diverging.reduce((sum, datum) => sum + datum.gained, 0);
   const candidateStatus: StatusKind =
     comparison.delta.successRate < -0.01
       ? 'regression'
@@ -94,11 +96,7 @@ export function Regressions() {
       <div className="panel-head">
         <div>
           <h2>Failure clusters</h2>
-          <p className="muted">
-            Regressed cases grouped by category, by where their calls diverge from{' '}
-            {baseline.appVersionLabel}, and by why they failed. Click a cluster to pin its cases in
-            the table.
-          </p>
+          <p className="muted">Open a cluster to read its cases.</p>
         </div>
       </div>
       <div className="panel-body">
@@ -106,7 +104,7 @@ export function Regressions() {
           entry={analysis}
           provenance={getAnalysisProvenance()}
           onSelect={(cluster) =>
-            setFilters({ runId: candidate.runId, caseIds: cluster.caseIds }, 'human')
+            pinInCases({ runId: candidate.runId, caseIds: cluster.caseIds })
           }
         />
       </div>
@@ -115,160 +113,56 @@ export function Regressions() {
 
   return (
     <div className="stack">
-      <div key={touch.key} className={`runlens${touch.className}`}>
-        <label className="runlens-side">
-          <span className="sr-only">Baseline run</span>
-          <select
-            value={baseline.runId}
-            onChange={(event) =>
-              void activateComparison(
-                { baselineRunId: event.target.value, candidateRunId: candidate.runId },
-                'human',
-              )
-            }
-          >
-            {runs.map((run) => (
-              <option
-                key={run.runId}
-                value={run.runId}
-                disabled={run.runId === candidate.runId}
-              >
-                {run.appVersionLabel} · {run.model}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <span className="runlens-arrow" aria-hidden="true">
-          →
-        </span>
-
-        <label className="runlens-side">
-          <span className="sr-only">Candidate run</span>
-          <select
-            value={candidate.runId}
-            onChange={(event) =>
-              void activateComparison(
-                { baselineRunId: baseline.runId, candidateRunId: event.target.value },
-                'human',
-              )
-            }
-          >
-            {runs.map((run) => (
-              <option
-                key={run.runId}
-                value={run.runId}
-                disabled={run.runId === baseline.runId}
-              >
-                {run.appVersionLabel} · {run.model}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <span className="runlens-status">
-          <StatusMark kind={candidateStatus} detail={statusLabel} size={16} />
-          <DeltaBadge
-            value={comparison.delta.successRate}
-            format={(value) => `${(value * 100).toFixed(1)} pts`}
-            versus="baseline"
-          />
-        </span>
-      </div>
-
-      <section className="panel panel-hero">
+      <section key={touch.key} className={`panel release-pair-panel run-pair-panel${touch.className}`}>
         <div className="panel-head">
           <div>
-            <h2>Case field</h2>
-            <p className="muted">
-              Each cell is one case in the suite, coloured by what happened to it between these
-              runs. Select a cell to open the case.
-            </p>
+            <h2>Compared runs</h2>
+            <p className="muted">The baseline run and the run being investigated, attempt by attempt.</p>
           </div>
+          <span className="runlens-status">
+            <StatusMark kind={candidateStatus} detail={statusLabel} size={16} />
+            <DeltaBadge
+              value={comparison.delta.successRate}
+              format={(value) => `${(value * 100).toFixed(1)} pts`}
+              versus="baseline"
+            />
+          </span>
         </div>
         <div className="panel-body">
-          <div className="hero-row">
-          <HeroFigure
-            label="Regressed attempts"
-            value={String(regressions.regressedAttempts)}
-            tone={regressions.regressedAttempts > 0 ? 'regressed' : 'fixed'}
-            caption={
-              <>
-                across {regressions.affectedCases} cases · {regressions.fixedAttempts} attempts
-                recovered
-                <br />
-                <span className="muted">
-                  net {regressions.netAttemptDelta >= 0 ? '+' : ''}
-                  {regressions.netAttemptDelta} of {candidate.metrics.testCount}
-                </span>
-              </>
-            }
+          <RunPairPicker
+            baseline={baseline}
+            candidate={candidate}
+            runs={runs}
+            candidateStatus={candidateStatus}
+            candidateLabel={statusLabel}
+            onChange={(pair) => void activateComparison(pair, 'human')}
           />
-          <div className="tiles">
-            <StatTile
-              label="Baseline"
-              value={`${(baseline.metrics.successRate * 100).toFixed(1)}%`}
-              footnote={baseline.appVersionLabel}
-            />
-            <StatTile
-              label="Candidate"
-              value={`${(candidate.metrics.successRate * 100).toFixed(1)}%`}
-              footnote={candidate.appVersionLabel}
-            />
-            <StatTile
-              label="Cases touched"
-              value={String(regressions.affectedCases + regressions.fixedCases.length)}
-              footnote={`${regressions.affectedCases} worse · ${regressions.fixedCases.length} better`}
-            />
-          </div>
-          </div>
-          <CaseField report={regressions} onOpenCase={(caseId) => openCase(caseId, 'human')} />
         </div>
       </section>
 
-      <section className="panel">
+      <div className="regress-row">
+      <section className="panel casefield-panel">
         <div className="panel-head">
           <div>
-            <h2>Lost and recovered by category</h2>
-            <p className="muted">
-              Attempts that stopped passing, against attempts that started.
-            </p>
+            <h2>The case field</h2>
+            <p className="muted">Every case, worst regression first. Open a cell to read the case.</p>
           </div>
         </div>
         <div className="panel-body">
-          <div className="diverge-cap">
-            <DivergingBars
-              data={diverging}
-              onSelect={(key) => {
-                const entry = comparison.byCategory.find((item) => item.category === key);
-                if (entry) setFilters({ runId: candidate.runId, category: entry.category }, 'human');
-              }}
-            />
-          </div>
-          <p className="chart-note">
-            <span className="muted">Select a category to filter the case table.</span>
-            <span className="chart-net">
-              <span className="tone-regressed">−{lostTotal.toLocaleString()} lost</span>
-              <span className="muted"> · </span>
-              <span className="tone-fixed">+{gainedTotal.toLocaleString()} recovered</span>
+          <p className="field-readout">
+            <b className="tone-regressed">{regressions.regressedAttempts}</b> attempts stopped
+            passing across <b>{regressions.affectedCases}</b>{' '}
+            {regressions.affectedCases === 1 ? 'case' : 'cases'};{' '}
+            <b className="tone-fixed">{regressions.fixedAttempts}</b> started.
+            <span className="field-readout-rates">
+              {(baseline.metrics.successRate * 100).toFixed(1)}% →{' '}
+              {(candidate.metrics.successRate * 100).toFixed(1)}%
+              <span className="muted">
+                {' · '}net {signed(regressions.netAttemptDelta)} of {candidate.metrics.testCount} attempts
+              </span>
             </span>
           </p>
-        </div>
-      </section>
 
-      {clustersPanel}
-
-      <section className="panel">
-        <div className="panel-head">
-          <div>
-            <h2>Every regressed case</h2>
-            <p className="muted">
-              Sorted by attempts lost. Failures already present in {baseline.appVersionLabel} are
-              excluded by construction.
-            </p>
-          </div>
-        </div>
-        <div className="panel-body">
           {regressions.cases.length === 0 ? (
             <div className="regress-clear">
               <img src="/brand/cards/field-clear.webp" alt="" aria-hidden="true" />
@@ -280,15 +174,38 @@ export function Regressions() {
                 </p>
               </div>
             </div>
-          ) : (
-            <RegressionPreview
-              report={regressions}
-              limit={regressions.cases.length}
-              onOpenCase={(caseId) => openCase(caseId, 'human')}
-            />
-          )}
+          ) : null}
+
+          <CaseField report={regressions} onOpenCase={(caseId) => openCase(caseId, 'human')} />
         </div>
       </section>
+
+      <section className="panel diverge-panel">
+        <div className="panel-head">
+          <div>
+            <h2>Lost and recovered by failure mode</h2>
+            <p className="muted">Attempts the candidate lost against attempts it recovered.</p>
+          </div>
+        </div>
+        <div className="panel-body">
+          <div className="diverge-cap">
+            <DivergingBars
+              data={diverging}
+              onSelect={(key) => {
+                const entry = comparison.byCategory.find((item) => item.category === key);
+                if (entry) pinInCases({ runId: candidate.runId, category: entry.category });
+              }}
+            />
+          </div>
+          <p className="chart-note">
+            <span className="muted">Select a failure mode to open its cases.</span>
+          </p>
+        </div>
+      </section>
+      </div>
+
+      {clustersPanel}
+
     </div>
   );
 }

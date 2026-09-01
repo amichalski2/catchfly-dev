@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import type { IncidentRecord, OperationalFinding, ProjectOperationalOverview } from '@catchfly/core/product-types.ts';
+import { formatCount } from '@catchfly/core/labels.ts';
 
 import { StatTile } from '../components/figures.tsx';
 import {
@@ -74,11 +75,11 @@ export function MeasuredOverview() {
 
   return <div className="stack measured-overview">
     <section className="panel panel-hero"><div className="panel-body">
-      <div className="overview-kicker"><div><span className="eyebrow">Production data</span><h2>{data.sessions.total === 0 ? 'Connect your first trace' : `${data.sessions.total.toLocaleString()} sessions observed`}</h2><p className="muted">Last telemetry: {freshness(data.telemetry.lastEventAt)}</p></div><button type="button" className="btn" onClick={() => setView(data.sessions.total === 0 ? 'sources' : 'sessions', 'human')}>{data.sessions.total === 0 ? 'Connect a source' : 'View sessions'}</button></div>
+      <div className="overview-kicker"><div><span className="eyebrow">Production data</span><h2>{data.sessions.total === 0 ? 'Connect your first trace' : `${formatCount(data.sessions.total)} sessions observed`}</h2><p className="muted">Last telemetry: {freshness(data.telemetry.lastEventAt)}</p></div><button type="button" className="btn" onClick={() => setView(data.sessions.total === 0 ? 'sources' : 'sessions', 'human')}>{data.sessions.total === 0 ? 'Connect a source' : 'View sessions'}</button></div>
       <div className="tiles overview-tiles">
-        <StatTile label="Outcome coverage" value={percent(data.sessions.outcomeCoverage)} footnote={`${data.sessions.unknown.toLocaleString()} unknown outcomes`} />
+        <StatTile label="Outcome coverage" value={percent(data.sessions.outcomeCoverage)} footnote={`${formatCount(data.sessions.unknown)} unknown outcomes`} />
         <StatTile label="Task success" value={data.sessions.measuredTaskSuccessRate === null ? null : percent(data.sessions.measuredTaskSuccessRate)} unmeasuredNote="No sessions carry a measured outcome yet." footnote="among measured sessions" />
-        <StatTile label="Tool execution" value={data.calls.executionSuccessRate === null ? null : percent(data.calls.executionSuccessRate)} unmeasuredNote="No completed tool calls yet." footnote={`${data.calls.total.toLocaleString()} calls`} />
+        <StatTile label="Tool execution" value={data.calls.executionSuccessRate === null ? null : percent(data.calls.executionSuccessRate)} unmeasuredNote="No completed tool calls yet." footnote={`${formatCount(data.calls.total)} calls`} />
         <StatTile label="Latest eval" value={data.evals.latestSuccessRate === null ? null : percent(data.evals.latestSuccessRate)} unmeasuredNote="Waiting for the first CI eval run." footnote={`${data.evals.runs} runs`} />
       </div>
     </div></section>
@@ -94,7 +95,7 @@ export function MeasuredOverview() {
 
     {activeIncidents.length > 0 ? <section className="panel"><div className="panel-head"><div><h2>Active incidents</h2><p className="muted">Human-owned follow-up created from measured evidence.</p></div></div><div className="panel-body"><ul className="finding-list">{activeIncidents.map((incident) => <li className={`finding-item finding-${incident.severity}`} key={incident.id}><span className="pill pill-warn">{incident.status}</span><div className="finding-copy"><strong>{incident.title}</strong><p className="muted">Opened {freshness(incident.createdAt)} · <code>{incident.id}</code></p></div>{incident.status === 'open' ? <button type="button" className="btn btn-quiet" disabled={(needsAdminKey && !adminKey) || busyId !== null} onClick={() => void changeStatus(incident, 'investigating')}>Investigate</button> : null}<button type="button" className="btn btn-quiet" disabled={(needsAdminKey && !adminKey) || busyId !== null} onClick={() => void changeStatus(incident, 'resolved')}>{busyId === incident.id ? 'Saving…' : 'Resolve'}</button></li>)}</ul></div></section> : null}
 
-    <div className="split"><section className="panel"><div className="panel-head"><div><h2>Telemetry</h2></div><button type="button" className="btn btn-quiet" onClick={() => setView('sources', 'human')}>Connection</button></div><div className="panel-body"><dl className="stat-list"><div><dt>Accepted events</dt><dd>{data.telemetry.acceptedEvents.toLocaleString()}</dd></div><div><dt>Rejected events</dt><dd>{data.telemetry.rejectedEvents.toLocaleString()}</dd></div><div><dt>Unknown outcomes</dt><dd>{data.sessions.unknown.toLocaleString()}</dd></div></dl></div></section>
+    <div className="split"><section className="panel"><div className="panel-head"><div><h2>Telemetry</h2></div><button type="button" className="btn btn-quiet" onClick={() => setView('sources', 'human')}>Connection</button></div><div className="panel-body"><dl className="stat-list"><div><dt>Accepted events</dt><dd>{formatCount(data.telemetry.acceptedEvents)}</dd></div><div><dt>Rejected events</dt><dd>{formatCount(data.telemetry.rejectedEvents)}</dd></div><div><dt>Unknown outcomes</dt><dd>{formatCount(data.sessions.unknown)}</dd></div></dl></div></section>
       <section className="panel"><div className="panel-head"><div><h2>Evals</h2></div><button type="button" className="btn btn-quiet" onClick={() => setView('cases', 'human')}>Open evals</button></div><div className="panel-body"><dl className="stat-list"><div><dt>Runs</dt><dd>{data.evals.runs}</dd></div><div><dt>Latest run</dt><dd><code>{data.evals.latestRunId ?? 'None'}</code></dd></div><div><dt>Success delta</dt><dd>{data.evals.successRateDelta === null ? 'Not comparable' : `${data.evals.successRateDelta >= 0 ? '+' : ''}${(data.evals.successRateDelta * 100).toFixed(1)} pts`}</dd></div></dl></div></section></div>
   </div>;
 }

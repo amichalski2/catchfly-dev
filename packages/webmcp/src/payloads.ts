@@ -8,6 +8,7 @@
  */
 
 import type { FailureCluster } from '@catchfly/core/analysis.ts';
+import { headlineIncidents, incidentCorroboration, incidentDeploymentPair, incidentKindCounts } from '@catchfly/core/incidents.ts';
 import type { CaseRow, RegressionReport, TrajectoryComparison } from '@catchfly/core/queries.ts';
 import type {
   DeploymentRollup,
@@ -36,6 +37,7 @@ export function caseRowPayload(row: CaseRow) {
     name: row.name,
     runId: row.runId,
     appVersionId: row.appVersionId,
+    appVersionLabel: row.appVersionLabel,
     model: row.model,
     passes: row.passes,
     repeats: row.repeats,
@@ -248,7 +250,8 @@ export function toolProfilePayload(production: ToolProduction, evalSide: ToolEva
   };
 }
 
-export function incidentPayload(incident: IncidentSummary) {
+export function incidentPayload(incident: IncidentSummary, timeline: IncidentTimelinePoint[] = []) {
+  const deployments = incidentDeploymentPair(incident, timeline);
   return {
     incidentId: incident.id,
     title: incident.title,
@@ -266,6 +269,9 @@ export function incidentPayload(incident: IncidentSummary) {
     candidateRunId: incident.candidateRunId,
     baselineVersionId: incident.baselineVersionId,
     candidateVersionId: incident.candidateVersionId,
+    baselineDeploymentId: deployments?.baselineDeploymentId ?? null,
+    candidateDeploymentId: deployments?.candidateDeploymentId ?? null,
+    corroboration: incidentCorroboration(incident),
     representativeModel: incident.model,
   };
 }
@@ -290,10 +296,14 @@ export function incidentOverviewPayload(overview: IncidentOverview) {
   return {
     projectId: overview.projectId,
     incidentPatterns: overview.incidentPatterns,
+    regressionCount: overview.incidentPatterns,
+    total: overview.incidents.length,
+    kindCounts: incidentKindCounts(overview.incidents),
+    visibleOnScreen: headlineIncidents(overview).map((incident) => incident.id),
     affectedTools: overview.affectedTools,
     evalAttempts: overview.evalAttempts,
     productionSessions: overview.productionSessions,
-    incidents: truncated(overview.incidents.map(incidentPayload)),
+    incidents: truncated(overview.incidents.map((incident) => incidentPayload(incident, overview.timeline))),
     releases: truncated(overview.timeline.map(releasePayload)),
   };
 }

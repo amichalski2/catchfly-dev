@@ -11,7 +11,7 @@ import { getDb } from '@catchfly/core/db.ts';
 import { compareTrajectories, getCase } from '@catchfly/core/queries.ts';
 import { catchflyStore } from '../state/store.ts';
 import { attemptPayload, trajectoryPayload } from '@catchfly/webmcp/payloads.ts';
-import { describeSharedState } from './tools.ts';
+import { SEES_AND_CAN_UNDO, writeResult } from './tools.ts';
 import type { ModelContextTool } from '@catchfly/webmcp/spec.ts';
 
 function selectedCaseId(): string {
@@ -90,12 +90,12 @@ export function buildCaseTools(): ModelContextTool[] {
       name: 'close_case',
       title: 'Close the case',
       description:
-        'Close the case-detail view and return the user to the case table. The case-scoped tools ' +
-        'disappear until a case is opened again. Returns the resulting state.',
+        'Close the case-detail view and return the developer to the case table. The case-scoped tools ' +
+        'disappear until a case is opened again. Returns the resulting state.' + SEES_AND_CAN_UNDO,
       inputSchema: { type: 'object', properties: {}, additionalProperties: false },
       execute: async () => {
         catchflyStore.getState().closeCase('agent');
-        return describeSharedState();
+        return writeResult();
       },
     },
   ];

@@ -1,0 +1,22 @@
+[
+  {
+    "name": "find a product",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Find a waterproof daypack under 100 EUR."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "search_catalog",
+        "arguments": {
+          "query": "waterproof daypack",
+          "maxPrice": 100,
+          "currency": "EUR"
+        }
+      }
+    ]
+  }
+]

@@ -23,15 +23,27 @@ function plateFor(point: IncidentTimelinePoint): string {
   return REGRESSION_PLATES[seed % REGRESSION_PLATES.length];
 }
 
+export type ProductionPair = { baselineDeploymentId: string; candidateDeploymentId: string };
+
 type Props = {
   timeline: IncidentTimelinePoint[];
   incidents: IncidentSummary[];
   count?: number;
   opening: string | null;
   onOpen: (incident: IncidentSummary) => void;
+  productionFor: (incident: IncidentSummary) => ProductionPair | null;
+  onOpenProduction: (pair: ProductionPair) => void;
 };
 
-export function ReleaseCards({ timeline, incidents, count = 3, opening, onOpen }: Props) {
+export function ReleaseCards({
+  timeline,
+  incidents,
+  count = 3,
+  opening,
+  onOpen,
+  productionFor,
+  onOpenProduction,
+}: Props) {
   const start = Math.max(timeline.length - count, 0);
   const latest = timeline.slice(start);
 
@@ -42,6 +54,7 @@ export function ReleaseCards({ timeline, incidents, count = 3, opening, onOpen }
         const previous = index > 0 ? timeline[index - 1] : null;
         const incident = incidents.find((entry) => entry.id === point.scenarioId) ?? null;
         const versus = previous ? `release ${String(index).padStart(2, '0')}` : undefined;
+        const production = incident ? productionFor(incident) : null;
 
         return (
           <article key={point.appVersionId} className="release-card">
@@ -85,15 +98,26 @@ export function ReleaseCards({ timeline, incidents, count = 3, opening, onOpen }
                 </div>
               </div>
 
-              <button
-                type="button"
-                className="btn btn-quiet release-open"
-                disabled={!incident || opening !== null}
-                title={incident ? undefined : 'A control release has no regression to open.'}
-                onClick={() => incident && onOpen(incident)}
-              >
-                {incident && opening === incident.id ? 'Loading…' : 'Open evidence'}
-              </button>
+              <div className="card-actions">
+                <button
+                  type="button"
+                  className="btn btn-quiet release-open"
+                  disabled={!incident || opening !== null}
+                  title={incident ? 'Open the eval comparison behind this release' : 'A control release has no regression to open.'}
+                  onClick={() => incident && onOpen(incident)}
+                >
+                  {incident && opening === incident.id ? 'Loading…' : 'Evals'}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-quiet release-open"
+                  disabled={!production}
+                  title={production ? 'Open the production comparison behind this release' : 'This release has no deployment to compare.'}
+                  onClick={() => production && onOpenProduction(production)}
+                >
+                  Production
+                </button>
+              </div>
             </div>
           </article>
         );

@@ -33,16 +33,80 @@ export function DivergingBars({
   data,
   onSelect,
   polarity = 'attempts',
+  emptyLabel = 'No change between these runs.',
+  limit,
+  moreLabel = 'rows',
 }: {
   data: DivergingDatum[];
   onSelect?: (key: string) => void;
   polarity?: Polarity;
+  emptyLabel?: string;
+  limit?: number;
+  moreLabel?: string;
 }) {
   const words = POLARITY[polarity];
   const [hovered, setHovered] = useState<string | null>(null);
-  if (data.length === 0) return <p className="muted">No change between these runs.</p>;
+  if (data.length === 0) return <p className="muted">{emptyLabel}</p>;
 
   const max = Math.max(...data.flatMap((datum) => [datum.lost, datum.gained]), 1);
+  const cut = limit !== undefined && data.length > limit ? limit : data.length;
+  const shown = data.slice(0, cut);
+  const rest = data.slice(cut);
+
+  const renderRow = (datum: DivergingDatum) => {
+    const interactive = onSelect !== undefined;
+    const Row = interactive ? 'button' : 'div';
+    const dim = hovered !== null && hovered !== datum.key ? 0.55 : 1;
+    return (
+      <Row
+        key={datum.key}
+        className={`diverge-row${interactive ? ' is-interactive' : ''}`}
+        onMouseEnter={() => setHovered(datum.key)}
+        onMouseLeave={() => setHovered(null)}
+        onFocus={() => setHovered(datum.key)}
+        onBlur={() => setHovered(null)}
+        {...(interactive ? { type: 'button' as const, onClick: () => onSelect(datum.key) } : {})}
+      >
+        <span className="diverge-label">{datum.label}</span>
+
+        <span className="diverge-side is-left">
+          {datum.lost > 0 ? (
+            <span className="diverge-count tabular">
+              {words.lostSign}
+              {datum.lost}
+            </span>
+          ) : null}
+          <span
+            className="diverge-bar is-lost mark mark-lost"
+            style={{
+              width: `${(datum.lost / max) * 100}%`,
+              height: BAR_HEIGHT,
+              opacity: dim,
+            }}
+          />
+        </span>
+
+        <span className="diverge-axis" aria-hidden="true" />
+
+        <span className="diverge-side is-right">
+          <span
+            className="diverge-bar is-gained mark mark-gained"
+            style={{
+              width: `${(datum.gained / max) * 100}%`,
+              height: BAR_HEIGHT,
+              opacity: dim,
+            }}
+          />
+          {datum.gained > 0 ? (
+            <span className="diverge-count tabular">
+              {words.gainedSign}
+              {datum.gained}
+            </span>
+          ) : null}
+        </span>
+      </Row>
+    );
+  };
 
   return (
     <div className="diverge">
@@ -57,60 +121,14 @@ export function DivergingBars({
         </span>
       </div>
 
-      {data.map((datum) => {
-        const interactive = onSelect !== undefined;
-        const Row = interactive ? 'button' : 'div';
-        const dim = hovered !== null && hovered !== datum.key ? 0.55 : 1;
-        return (
-          <Row
-            key={datum.key}
-            className={`diverge-row${interactive ? ' is-interactive' : ''}`}
-            onMouseEnter={() => setHovered(datum.key)}
-            onMouseLeave={() => setHovered(null)}
-            onFocus={() => setHovered(datum.key)}
-            onBlur={() => setHovered(null)}
-            {...(interactive ? { type: 'button' as const, onClick: () => onSelect(datum.key) } : {})}
-          >
-            <span className="diverge-label">{datum.label}</span>
+      {shown.map(renderRow)}
 
-            <span className="diverge-side is-left">
-              {datum.lost > 0 ? (
-                <span className="diverge-count tabular">
-                  {words.lostSign}
-                  {datum.lost}
-                </span>
-              ) : null}
-              <span
-                className="diverge-bar is-lost mark mark-lost"
-                style={{
-                  width: `${(datum.lost / max) * 100}%`,
-                  height: BAR_HEIGHT,
-                  opacity: dim,
-                }}
-              />
-            </span>
-
-            <span className="diverge-axis" aria-hidden="true" />
-
-            <span className="diverge-side is-right">
-              <span
-                className="diverge-bar is-gained mark mark-gained"
-                style={{
-                  width: `${(datum.gained / max) * 100}%`,
-                  height: BAR_HEIGHT,
-                  opacity: dim,
-                }}
-              />
-              {datum.gained > 0 ? (
-                <span className="diverge-count tabular">
-                  {words.gainedSign}
-                  {datum.gained}
-                </span>
-              ) : null}
-            </span>
-          </Row>
-        );
-      })}
+      {rest.length > 0 ? (
+        <details className="findings-more diverge-more">
+          <summary>All {data.length} {moreLabel}</summary>
+          {rest.map(renderRow)}
+        </details>
+      ) : null}
     </div>
   );
 }

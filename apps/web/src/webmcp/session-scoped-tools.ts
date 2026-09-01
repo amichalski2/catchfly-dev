@@ -21,7 +21,7 @@ import type { ModelContextTool } from '@catchfly/webmcp/spec.ts';
 import { ApiError, createCase, readStoredEvalKey } from '../data/api.ts';
 import { invalidateProject } from '../data/load.ts';
 import { catchflyStore } from '../state/store.ts';
-import { asOptionalString, describeSharedState } from './tools.ts';
+import { asOptionalString, SEES_AND_CAN_UNDO, writeResult } from './tools.ts';
 
 async function selectedSession(): Promise<Session> {
   const sessionId = catchflyStore.getState().selectedSessionId;
@@ -54,8 +54,8 @@ export function buildSessionScopedTools(): ModelContextTool[] {
         'Prepare or, after explicit developer approval, create a permanent eval case from the open session. ' +
         'Call first without confirmed to review the exact draft. Only pass confirmed: true after the ' +
         'developer approves that draft. ' +
-        'The saved case makes this failure checked on every ' +
-        'future run. By default the expectation is the calls that succeeded, with their ' +
+        'Pull the saved project suite with `catchfly eval pull` before the next CI run. ' +
+        'By default the expectation is the calls that succeeded, with their ' +
         'arguments, plus the rejected call by name only — asserting the arguments that failed ' +
         'would mint a test for the bug. Pass correctedCalls when you know what should have ' +
         'happened instead. Requires a CI key to be stored in the browser; if it is not, ask the ' +
@@ -151,13 +151,13 @@ export function buildSessionScopedTools(): ModelContextTool[] {
           catchflyStore
             .getState()
             .noteImport(`Created eval case ${saved.caseId} from session ${session.id}`, 'agent');
-          return {
+          return writeResult({
             created: saved,
             hint:
               `The case is stored. It will appear in the case table after the dataset reloads; ` +
-              `open_case with caseId "${saved.caseId}" puts it on the developer's screen.`,
-            state: describeSharedState(),
-          };
+              `open_case with caseId "${saved.caseId}" puts it on the developer's screen. ` +
+              `Run catchfly eval pull evals.json --project ${projectId} to bring the reviewed suite into CI.`,
+          });
         } catch (error) {
           if (error instanceof ApiError && error.status === 401) {
             throw new Error(
@@ -179,11 +179,12 @@ export function buildSessionScopedTools(): ModelContextTool[] {
       title: 'Close the session',
       description:
         'Close the session trace and return the developer to the session list. The ' +
-        'session-scoped tools disappear until a session is opened again. Returns the resulting state.',
+        'session-scoped tools disappear until a session is opened again. Returns the resulting state.' +
+        SEES_AND_CAN_UNDO,
       inputSchema: { type: 'object', properties: {}, additionalProperties: false },
       execute: async () => {
         catchflyStore.getState().closeSession('agent');
-        return describeSharedState();
+        return writeResult();
       },
     },
   ];

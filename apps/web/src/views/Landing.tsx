@@ -5,6 +5,7 @@ import { useMediaQuery } from '../state/useMediaQuery.ts';
 import { STACK } from './stack-marks.ts';
 
 export const WORKSPACE_PATH = '/w/9f2c7a41';
+const REPOSITORY_URL = 'https://github.com/amichalski2/catchfly-dev';
 
 export function Landing() {
   const showShot = useMediaQuery('(min-width: 768px)');
@@ -40,14 +41,57 @@ export function Landing() {
             app, model and tool versions.
           </p>
 
-          <p className="landing-body">
-            Chrome executes the evals. Catchfly keeps every run and brings the results together
-            with production traces, so you can see what changed and why.
+          <p className="landing-loop" aria-label="The Catchfly loop">
+            <span>production trace</span>
+            <span aria-hidden="true">→</span>
+            <span>reviewed failure</span>
+            <span aria-hidden="true">→</span>
+            <span>eval case</span>
+            <span aria-hidden="true">→</span>
+            <span>CI gate</span>
           </p>
 
+          <div className="landing-tools" aria-label="Catchfly developer tools">
+            <a
+              className="landing-tool-badge"
+              href="https://www.npmjs.com/package/@catchfly/sdk"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <span>SDK</span>
+              <code>@catchfly/sdk</code>
+              <small>production traces</small>
+            </a>
+            <a
+              className="landing-tool-badge"
+              href="https://www.npmjs.com/package/@catchfly/cli"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <span>CLI</span>
+              <code>@catchfly/cli</code>
+              <small>Chrome evals in CI</small>
+            </a>
+            <a
+              className="landing-tool-badge landing-tool-badge-github"
+              href={REPOSITORY_URL}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                <path
+                  fill="currentColor"
+                  d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+                />
+              </svg>
+              <code>GitHub</code>
+              <small>MIT licensed</small>
+            </a>
+          </div>
+
           <div className="landing-actions">
-            <a className="landing-cta" href={`${WORKSPACE_PATH}?signin`}>
-              Start free
+            <a className="landing-cta" href={WORKSPACE_PATH}>
+              Explore the demo
               <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
                 <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" strokeOpacity="0.45" />
                 <path
@@ -60,32 +104,15 @@ export function Landing() {
                 />
               </svg>
             </a>
-            <a className="landing-cta landing-cta-quiet" href={WORKSPACE_PATH}>
-              Explore the demo
-            </a>
-            <a
-              className="landing-cta landing-cta-quiet"
-              href="https://webmcp.devpost.com/project-gallery"
-              rel="noreferrer"
-            >
-              WebMCP Challenge Gallery
+            <a className="landing-cta landing-cta-quiet" href={`${WORKSPACE_PATH}?signin`}>
+              Connect your app
             </a>
           </div>
-
-          <p className="landing-tagline">
-            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-              <path
-                fill="currentColor"
-                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
-              />
-            </svg>
-            Open source | MIT licensed
-          </p>
         </div>
 
         {showShot ? (
           <div className="landing-shot">
-            <a className="landing-shot-frame" href={WORKSPACE_PATH} aria-label="Explore the Catchfly demo">
+            <div className="landing-shot-frame">
               <img
                 src="/brand/landing/hero-app.webp"
                 srcSet="/brand/landing/hero-app@1x.webp 900w, /brand/landing/hero-app.webp 1800w"
@@ -95,13 +122,15 @@ export function Landing() {
                 height={1048}
                 loading="eager"
               />
-            </a>
+            </div>
           </div>
         ) : null}
       </header>
 
       <footer className="landing-foot panel">
-        <span className="landing-built">Built for the WebMCP Challenge</span>
+        <a className="landing-built" href="https://webmcp.devpost.com" target="_blank" rel="noreferrer">
+          Built for the WebMCP Challenge
+        </a>
         <ul className="landing-stack">
           {STACK.map((item) => (
             <li

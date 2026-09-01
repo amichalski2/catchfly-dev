@@ -51,7 +51,6 @@ export function RegressionPreview({
               ) : (
                 entry.name
               )}
-              <span className="row-sub">{entry.caseId}</span>
             </th>
             <td>{categoryLabel(entry.category)}</td>
             <td className="col-right">

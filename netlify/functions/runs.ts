@@ -7,8 +7,11 @@
  * in the UI and the stored row agree on identity.
  */
 
-import { adaptChromeReport, ImportError, type ChromeReport } from '@catchfly/eval-adapters/chrome.ts';
-import { runIdFor } from '@catchfly/eval-adapters/merge.ts';
+// By path rather than by package name, for the reason given in lib/telemetry.ts:
+// these are the adapter's runtime exports, and resolving them through the
+// package's exports map is what the deployed bundler failed to do.
+import { adaptChromeReport, ImportError, type ChromeReport } from '../../packages/eval-adapters/src/chrome.ts';
+import { runIdFor } from '../../packages/eval-adapters/src/merge.ts';
 
 import { authorizeProjectWrite } from './lib/user-auth.ts';
 import { isDatabaseConfigured } from './lib/db.ts';

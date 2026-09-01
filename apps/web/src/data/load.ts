@@ -120,6 +120,9 @@ export async function ensureRunResults(runIds: string[]): Promise<void> {
       return { items: page.results, nextCursor: page.nextCursor };
     }),
   }));
+  // A project switch or cache invalidation while these pages were in flight
+  // wins. Never install results into a different (or replacement) database.
+  if (catchflyStore.getState().projectId !== projectId || currentDb(projectId) !== db) return;
   const byRun = new Map(hydrated.map((entry) => [entry.runId, entry.results]));
   const next = withRunResults(db, byRun);
   loaded.set(projectId, next);

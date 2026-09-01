@@ -152,6 +152,10 @@ export function CreateEvalPanel({ session }: { session: Session }) {
               Open the case
             </button>
           </p>
+          <p className="muted">
+            Pull the reviewed suite into your repository before the next CI run:
+          </p>
+          <pre className="code-block"><code>{`npx @catchfly/cli eval pull evals.json --endpoint ${window.location.origin} --project ${projectId} --key $CATCHFLY_EVAL_KEY`}</code></pre>
         </div>
       ) : null}
 

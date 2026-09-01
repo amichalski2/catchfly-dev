@@ -1,16 +1,19 @@
-process.loadEnvFile?.();
+import { existsSync } from 'node:fs';
+
+if (existsSync('.env')) process.loadEnvFile?.();
 process.env.CATCHFLY_AUTH_MODE = 'supabase';
 process.env.SUPABASE_URL ??= 'https://smoke.supabase.local';
 process.env.SUPABASE_JWT_SECRET ??= 'catchfly-smoke-secret';
 
 const { SignJWT } = await import('jose');
-const { sql } = await import('../netlify/functions/lib/db.ts');
+const { isDatabaseConfigured, sql } = await import('../netlify/functions/lib/db.ts');
 const meHandler = (await import('../netlify/functions/me.ts')).default;
 const provisionHandler = (await import('../netlify/functions/me-provision.ts')).default;
 const orgsHandler = (await import('../netlify/functions/orgs.ts')).default;
 const projectsHandler = (await import('../netlify/functions/projects.ts')).default;
 const sourcesHandler = (await import('../netlify/functions/sources.ts')).default;
 const environmentsHandler = (await import('../netlify/functions/environments.ts')).default;
+const { authMode } = await import('../netlify/functions/lib/user-auth.ts');
 
 const DEMO = 'devpost-review-scale';
 const secret = new TextEncoder().encode(process.env.SUPABASE_JWT_SECRET);
@@ -20,6 +23,30 @@ function check(label: string, condition: boolean, detail = ''): void {
   const status = condition ? '\x1b[32mok\x1b[0m  ' : '\x1b[31mFAIL\x1b[0m';
   console.log(`  ${status} ${label}${detail ? ` — ${detail}` : ''}`);
   if (!condition) failures.push(label);
+}
+
+console.log('\n\x1b[1mauth configuration\x1b[0m');
+const configuredAuthMode = process.env.CATCHFLY_AUTH_MODE;
+process.env.CATCHFLY_AUTH_MODE = 'supabse';
+let typoRefused = false;
+try { authMode(); } catch { typoRefused = true; }
+check('an auth mode typo fails closed', typoRefused);
+delete process.env.CATCHFLY_AUTH_MODE;
+let missingRefused = false;
+try { authMode(); } catch { missingRefused = true; }
+check('a missing auth mode fails closed', missingRefused);
+process.env.CATCHFLY_AUTH_MODE = configuredAuthMode;
+const configuredSupabaseUrl = process.env.SUPABASE_URL;
+delete process.env.SUPABASE_URL;
+let missingSupabaseUrlRefused = false;
+try { authMode(); } catch { missingSupabaseUrlRefused = true; }
+check('supabase mode without its URL fails closed', missingSupabaseUrlRefused);
+process.env.SUPABASE_URL = configuredSupabaseUrl;
+
+if (!isDatabaseConfigured()) {
+  if (failures.length > 0) process.exit(1);
+  console.log('\n\x1b[33mNo DATABASE_URL configured — skipping the account database checks.\x1b[0m');
+  process.exit(0);
 }
 
 const url = (path: string) => `http://smoke.local${path}`;
