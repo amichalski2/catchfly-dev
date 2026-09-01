@@ -84,8 +84,12 @@ Catchfly requires Node.js 22 or newer.
 
 ```bash
 npm install
+cp .env.example .env
 npm run dev
 ```
+
+On PowerShell, use `Copy-Item .env.example .env`. The template explicitly enables open local mode;
+Internet-facing deployments should set `CATCHFLY_AUTH_MODE=supabase`.
 
 Open [http://localhost:5173/w/9f2c7a41](http://localhost:5173/w/9f2c7a41) to enter
 the bundled Investigation Lab. It contains a deterministic, read-only project with
@@ -132,8 +136,15 @@ shutdown handling.
 
 ## Run Chrome WebMCP Evals from CI
 
-Create an eval key for the project, then let the Catchfly CLI run the Chrome suite and
-upload its report.
+Create an eval key for the project. Pull cases reviewed from real traces into source control, then
+let the Catchfly CLI run the Chrome suite and upload its report.
+
+```bash
+npx @catchfly/cli eval pull evals.json \
+  --endpoint https://catchfly.example.com \
+  --project checkout \
+  --key "$CATCHFLY_EVAL_KEY"
+```
 
 ```bash
 npx @catchfly/cli eval run \
@@ -149,7 +160,7 @@ npx @catchfly/cli eval run \
 The optional success-rate threshold turns the run into a CI quality gate. A failing
 gate still uploads its evidence, so the result is available for investigation. Existing
 JSON reports can be sent with `catchfly eval upload`. See the
-[`@catchfly/cli` documentation](./packages/cli/README.md) for both commands.
+[`@catchfly/cli` documentation](./packages/cli/README.md) for all three commands.
 
 ## Self-host with Docker
 
@@ -177,6 +188,7 @@ day-to-day operations.
 | [`packages/core`](./packages/core) | Data model and deterministic analysis primitives |
 | [`packages/webmcp`](./packages/webmcp) | WebMCP types, tool registration, and result shaping |
 | [`db/migrations`](./db/migrations) | PostgreSQL schema and forward migrations |
+| [`examples/webmcp-vite`](./examples/webmcp-vite) | Minimal SDK-to-eval integration reference |
 
 The WebMCP tools live in [`apps/web/src/webmcp`](./apps/web/src/webmcp). Read tools
 query the same deterministic layer as the interface. Tools that move the workspace use

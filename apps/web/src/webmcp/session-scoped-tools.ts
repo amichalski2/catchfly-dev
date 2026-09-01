@@ -54,8 +54,8 @@ export function buildSessionScopedTools(): ModelContextTool[] {
         'Prepare or, after explicit developer approval, create a permanent eval case from the open session. ' +
         'Call first without confirmed to review the exact draft. Only pass confirmed: true after the ' +
         'developer approves that draft. ' +
-        'The saved case makes this failure checked on every ' +
-        'future run. By default the expectation is the calls that succeeded, with their ' +
+        'Pull the saved project suite with `catchfly eval pull` before the next CI run. ' +
+        'By default the expectation is the calls that succeeded, with their ' +
         'arguments, plus the rejected call by name only — asserting the arguments that failed ' +
         'would mint a test for the bug. Pass correctedCalls when you know what should have ' +
         'happened instead. Requires a CI key to be stored in the browser; if it is not, ask the ' +
@@ -155,7 +155,8 @@ export function buildSessionScopedTools(): ModelContextTool[] {
             created: saved,
             hint:
               `The case is stored. It will appear in the case table after the dataset reloads; ` +
-              `open_case with caseId "${saved.caseId}" puts it on the developer's screen.`,
+              `open_case with caseId "${saved.caseId}" puts it on the developer's screen. ` +
+              `Run catchfly eval pull evals.json --project ${projectId} to bring the reviewed suite into CI.`,
             state: describeSharedState(),
           };
         } catch (error) {

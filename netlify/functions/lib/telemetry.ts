@@ -1,12 +1,16 @@
 import { createHash, randomUUID } from 'node:crypto';
 
 import type { PoolClient } from 'pg';
+// Imported by path, not by package name: this is the only value (rather than
+// type) the ingest path takes from a workspace package, and resolving it through
+// the package's exports map is what the deployed bundler failed to do — the
+// function then 502s at module load, before any handler code runs.
 import {
   TELEMETRY_EVENT_TYPES,
   type DataPolicy,
   type RedactionRule,
   type TelemetryEvent,
-} from '@catchfly/core/product-types.ts';
+} from '../../../packages/core/src/product-types.ts';
 import type { FailureCategory, TrajectoryStep } from '@catchfly/core/types.ts';
 
 import { transaction } from './db.ts';

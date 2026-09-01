@@ -5,7 +5,7 @@ import type { EvalResultFilters, FailureCategory, Outcome } from '@catchfly/core
 import { isDatabaseConfigured } from './lib/db.ts';
 import { authorizeProjectRead } from './lib/user-auth.ts';
 import { EvalCursorError, searchEvalResults } from './lib/eval-read-store.ts';
-import { cachedJson, json, methodNotAllowed } from './lib/http.ts';
+import { json, methodNotAllowed, projectJson } from './lib/http.ts';
 import { projectExists } from './lib/store.ts';
 
 export const config = { path: '/api/projects/:projectId/eval-runs/:runId/results' };
@@ -51,7 +51,12 @@ export default async function handler(
     ...(query.get('caseId') ? { caseId: query.get('caseId')! } : {}),
   };
   try {
-    return cachedJson(200, await searchEvalResults(projectId, runId, filters, query.get('cursor'), limit), 60);
+    return projectJson(
+      projectId,
+      200,
+      await searchEvalResults(projectId, runId, filters, query.get('cursor'), limit),
+      60,
+    );
   } catch (error) {
     if (error instanceof EvalCursorError) return json(400, { error: error.message });
     throw error;

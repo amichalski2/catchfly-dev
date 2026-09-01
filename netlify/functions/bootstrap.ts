@@ -3,7 +3,7 @@
 import { isDatabaseConfigured } from './lib/db.ts';
 import { authorizeProjectRead } from './lib/user-auth.ts';
 import { loadEvalBootstrap } from './lib/eval-read-store.ts';
-import { cachedJson, json, methodNotAllowed } from './lib/http.ts';
+import { json, methodNotAllowed, projectJson } from './lib/http.ts';
 
 export const config = { path: '/api/projects/:projectId/bootstrap' };
 
@@ -17,5 +17,5 @@ export default async function handler(
   if (!isDatabaseConfigured()) return json(503, { error: 'No database is configured for this deployment.' });
   const bootstrap = await loadEvalBootstrap(context.params.projectId);
   if (!bootstrap) return json(404, { error: `Unknown project "${context.params.projectId}".` });
-  return cachedJson(200, { bootstrap }, 60);
+  return projectJson(context.params.projectId, 200, { bootstrap }, 60);
 }

@@ -14,8 +14,25 @@ export type UserClaims = { userId: string; email: string };
 
 export type OrgRole = 'owner' | 'admin' | 'member';
 
+export type AuthMode = 'none' | 'supabase';
+
+export class AuthConfigurationError extends Error {}
+
+export function authMode(): AuthMode {
+  const configured = process.env.CATCHFLY_AUTH_MODE;
+  if (configured !== 'none' && configured !== 'supabase') {
+    throw new AuthConfigurationError(
+      'CATCHFLY_AUTH_MODE must be explicitly set to "none" or "supabase".',
+    );
+  }
+  if (configured === 'supabase' && !process.env.SUPABASE_URL) {
+    throw new AuthConfigurationError('SUPABASE_URL is required when CATCHFLY_AUTH_MODE=supabase.');
+  }
+  return configured;
+}
+
 export function supabaseAuthEnabled(): boolean {
-  return process.env.CATCHFLY_AUTH_MODE === 'supabase';
+  return authMode() === 'supabase';
 }
 
 let jwks: JWTVerifyGetKey | null = null;

@@ -1,6 +1,8 @@
 import { CATEGORY_LABELS } from '@catchfly/core/labels.ts';
 import type { SessionSummary } from '@catchfly/core/session-types.ts';
 
+import { OutcomeMark } from './OutcomeMark.tsx';
+
 const OUTCOME_TONE: Record<SessionSummary['outcome'], string> = {
   completed: 'completed',
   failed: 'failed',
@@ -28,21 +30,23 @@ export function SessionStream({
   rows: SessionSummary[];
   onOpenSession: (sessionId: string) => void;
 }) {
-  let lastDay = '';
-
   return (
     <ol className="stream">
-      {rows.map((row) => {
-        const day = dayOf(row.startedAt);
-        const opensDay = day !== lastDay;
-        lastDay = day;
+      {rows.map((row, index) => {
+        const previous = index > 0 ? rows[index - 1] : null;
+        const opensDay = previous === null || dayOf(row.startedAt) !== dayOf(previous.startedAt);
 
         return (
           <li key={row.id} className="stream-item">
             {opensDay ? <p className="stream-day">{dayLabel(row.startedAt)}</p> : null}
 
             <div className={`stream-row is-${OUTCOME_TONE[row.outcome]}`}>
-              <span className="stream-mark" aria-hidden="true" />
+              <span className="stream-mark">
+                <OutcomeMark
+                  outcome={row.outcome}
+                  detail={row.failureCategory ? CATEGORY_LABELS[row.failureCategory] : undefined}
+                />
+              </span>
 
               <span className="stream-clock tabular">{clockOf(row.startedAt)}</span>
 

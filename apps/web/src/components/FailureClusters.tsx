@@ -1,15 +1,8 @@
 /**
  * Failure clusters — regressed cases grouped by how they failed.
  *
- * Two readings of the same list. The bars answer "how big is each failure
- * mode", which is the question that decides what to fix first; the cards below
- * answer "what is it and why", which is the part a model wrote. Clicking either
- * pins that cluster's cases in the shared table, so the panel hands off to the
- * same filtered view the agent produces through set_dashboard_filters.
- *
- * The generated half is labelled as generated. A root-cause line is a
- * hypothesis about a probabilistic system, and presenting it as a finding would
- * be the wrong kind of confident.
+ * The bars show the size of each failure mode; the cards describe the computed
+ * grouping. Clicking either pins that cluster's cases in the shared table.
  */
 
 import { BarList, type BarDatum } from './BarList.tsx';
@@ -43,10 +36,6 @@ export function FailureClusters({ entry, provenance, onSelect }: Props) {
   }));
 
   const bySignature = new Map(clusters.map((cluster) => [cluster.signature, cluster]));
-  // Placeholder prose says the same sentence on every card; the footnote below
-  // already explains why, so the cards stay quiet until a model has written.
-  const written = provenance !== null && provenance.model !== 'none';
-
   return (
     <>
       <BarList
@@ -75,11 +64,6 @@ export function FailureClusters({ entry, provenance, onSelect }: Props) {
                   {cluster.divergence.baselineTool} → {cluster.divergence.candidateTool}
                 </span>
               ) : null}
-              {written ? (
-                <span className="cluster-cause">
-                  <span className="cluster-cause-tag">hypothesis</span> {cluster.rootCause}
-                </span>
-              ) : null}
             </button>
           </li>
         ))}
@@ -87,9 +71,7 @@ export function FailureClusters({ entry, provenance, onSelect }: Props) {
 
       {provenance ? (
         <p className="muted cluster-provenance">
-          {provenance.model === 'none'
-            ? 'Cluster membership is computed; labels are placeholders until the analysis is generated with a model.'
-            : `Cluster membership is computed from the eval data. Labels, summaries and hypotheses were written by ${provenance.model}.`}
+          Cluster membership, labels and summaries are computed deterministically from the eval data.
         </p>
       ) : null}
     </>

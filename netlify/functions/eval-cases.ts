@@ -3,7 +3,7 @@
 import { isDatabaseConfigured } from './lib/db.ts';
 import { authorizeProjectRead } from './lib/user-auth.ts';
 import { EvalCursorError, searchEvalCases } from './lib/eval-read-store.ts';
-import { cachedJson, json, methodNotAllowed } from './lib/http.ts';
+import { json, methodNotAllowed, projectJson } from './lib/http.ts';
 import { projectExists } from './lib/store.ts';
 
 export const config = { path: '/api/projects/:projectId/eval-cases' };
@@ -25,7 +25,12 @@ export default async function handler(
     return json(400, { error: `"limit" must be a positive integer, got ${rawLimit}.` });
   }
   try {
-    return cachedJson(200, await searchEvalCases(projectId, query.get('search') ?? undefined, query.get('cursor'), limit), 60);
+    return projectJson(
+      projectId,
+      200,
+      await searchEvalCases(projectId, query.get('search') ?? undefined, query.get('cursor'), limit),
+      60,
+    );
   } catch (error) {
     if (error instanceof EvalCursorError) return json(400, { error: error.message });
     throw error;

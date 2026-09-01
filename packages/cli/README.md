@@ -1,6 +1,19 @@
 # `@catchfly/cli`
 
-Run a WebMCP eval suite and send the result to Catchfly:
+Pull reviewed cases created from real traces into the repository:
+
+```bash
+npx @catchfly/cli eval pull evals.json \
+  --endpoint https://catchfly.example.com \
+  --project my-app \
+  --key "$CATCHFLY_EVAL_KEY"
+```
+
+The command refuses to replace an existing file unless `--force` is passed. The output is a Chrome
+WebMCP Evals-compatible suite, so a failure reviewed in Catchfly can become versioned regression
+coverage in the same workflow.
+
+Run that WebMCP eval suite and send the result to Catchfly:
 
 ```bash
 npx @catchfly/cli eval run \

@@ -6,8 +6,11 @@
  * which slice both operators are looking at.
  */
 
+import { useState } from 'react';
+
 import { getDb } from '@catchfly/core/db.ts';
 
+import { CaseComposition } from '../components/CaseComposition.tsx';
 import { CaseTable } from '../components/CaseTable.tsx';
 import { FilterBar } from '../components/FilterBar.tsx';
 import { summaryOnlyRuns } from '../data/load.ts';
@@ -15,8 +18,11 @@ import { useSelector, visibleCases } from '../state/selectors.ts';
 import { useCatchflyStore } from '../state/store.ts';
 import { useAgentTouch } from '../state/useAgentTouch.ts';
 import { useComparisonEvidence } from '../state/useComparisonEvidence.ts';
+import '../styles/cases.css';
 
 const FILTER_ACTIONS = ['set_filters', 'reset_filters', 'create_segment'] as const;
+
+const PAGE_SIZE = 25;
 
 export function Cases() {
   // Subscribing to datasetVersion re-renders this view after an import; the
@@ -33,6 +39,7 @@ export function Cases() {
   const pendingRuns = summaryOnlyRuns(getDb().dataset.runs.map((run) => run.id)).length;
   const loadedRuns = runCount - pendingRuns;
   const evidence = useComparisonEvidence();
+  const [paging, setPaging] = useState({ slice: '', page: 1 });
 
   if (runCount === 0) {
     return (
@@ -51,8 +58,15 @@ export function Cases() {
   if (evidence.error) return <p className="boot-error">Could not load case evidence: {evidence.error}</p>;
   if (!evidence.ready) return <section className="panel"><div className="panel-body muted">Loading cases for the selected comparison…</div></section>;
 
+  const slice = JSON.stringify(filters);
+  const pageCount = Math.max(Math.ceil(rows.length / PAGE_SIZE), 1);
+  const page = paging.slice === slice ? Math.min(paging.page, pageCount) : 1;
+  const from = (page - 1) * PAGE_SIZE;
+  const shown = rows.slice(from, from + PAGE_SIZE);
+  const goTo = (next: number) => setPaging({ slice, page: Math.min(Math.max(next, 1), pageCount) });
+
   return (
-    <div className="stack">
+    <div className="stack cases-view">
       <FilterBar resultCount={rows.length} />
 
       {segments.length > 0 ? (
@@ -72,21 +86,67 @@ export function Cases() {
         </div>
       ) : null}
 
-      <section key={touch.key} className={`panel${touch.className}`}>
+      <section className="panel composition-panel">
+        <img className="panel-plate" src="/brand/cards/catalogue.webp" alt="" aria-hidden="true" />
+        <div className="panel-head">
+          <div>
+            <h2>What the suite is made of</h2>
+          </div>
+        </div>
+        <div className="panel-body">
+          <CaseComposition
+            rows={rows}
+            activeCategory={filters.category}
+            onSelect={(category) => setFilters({ category }, 'human')}
+          />
+        </div>
+      </section>
+
+      <section key={touch.key} className={`panel catalogue-panel${touch.className}`}>
+        <div className="panel-head">
+          <div>
+            <h2>The catalogue</h2>
+          </div>
+        </div>
         <div className="panel-body">
           {pendingRuns > 0 ? (
             <p className="table-note">
-              Attempts are loaded for {loadedRuns} of {runCount} runs — the rest are summary-only
-              until a comparison needs them. Open an incident from Incidents, or pick a pair in the
-              Regression Explorer, to load another.
-            </p>
-          ) : Object.keys(filters).length === 0 ? (
-            <p className="table-note">
-              Showing every case across {runCount === 1 ? 'the one run' : `all ${runCount} runs`}.
-              {runCount > 1 ? ' Pick a run to compare like for like.' : ''}
+              Attempts loaded for {loadedRuns} of {runCount} runs; the rest stay summary-only until
+              a comparison needs them.
             </p>
           ) : null}
-          <CaseTable rows={rows} onOpenCase={(caseId) => openCase(caseId, 'human')} />
+          <CaseTable rows={shown} cap={PAGE_SIZE} onOpenCase={(caseId) => openCase(caseId, 'human')} />
+
+          {rows.length > 0 ? (
+            <div className="pager">
+              <span className="pager-status">
+                {(from + 1).toLocaleString('en-US')}–
+                {Math.min(from + PAGE_SIZE, rows.length).toLocaleString('en-US')} of{' '}
+                {rows.length.toLocaleString('en-US')}
+              </span>
+              <span className="pager-steps">
+                <button
+                  type="button"
+                  className="btn btn-quiet"
+                  disabled={page === 1}
+                  onClick={() => goTo(page - 1)}
+                >
+                  Previous
+                </button>
+                <span className="pager-page">
+                  Page {page} of {pageCount}
+                </span>
+                <button
+                  type="button"
+                  className="btn btn-quiet"
+                  disabled={page === pageCount}
+                  onClick={() => goTo(page + 1)}
+                >
+                  Next
+                </button>
+              </span>
+            </div>
+          ) : null}
         </div>
       </section>
     </div>

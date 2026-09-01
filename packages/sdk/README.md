@@ -70,9 +70,13 @@ server-side redaction in Catchfly before sending production arguments or results
 
 ## Delivery behavior
 
-Events retry three times by default with exponential backoff and one idempotency key. A batch is
-dropped after the retry budget and passed to `onError`. Tune delivery with `maxRetries`,
-`retryBaseMs`, `batchSize`, `flushIntervalMs`, and `maxBufferSize`.
+Events retry three times by default with exponential backoff and one idempotency key. Only network
+errors, 408, 429 and 5xx responses are retried. A transiently failed batch returns to the in-memory
+queue for the next flush; permanent 4xx failures are reported through `onError` and discarded.
+Tune delivery with `maxRetries`, `retryBaseMs`, `batchSize`, `maxBatchBytes`, `flushIntervalMs`, and
+`maxBufferSize`.
 
 Call `await catchfly.shutdown()` during graceful server shutdown. Browser integrations normally
-rely on the automatic keepalive flush.
+rely on the automatic size-bounded keepalive flush during `pagehide`. Delivery receipts with
+partially rejected events are also surfaced through `onError`, including the server's rejection
+reasons.

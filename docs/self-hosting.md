@@ -20,9 +20,10 @@ durable system of record.
 6. Keep runtime SDK keys separate from CI eval keys. Rotate or revoke them from
    Sources when an integration is retired.
 
-The Compose configuration is secure by default: dashboard token mode is on and
-both installation secrets are required. For an intentionally public local
-workspace, a non-Compose process can use `CATCHFLY_AUTH_MODE=none`.
+The Compose configuration requires an installation admin secret and explicitly defaults to
+`CATCHFLY_AUTH_MODE=none`. Set `CATCHFLY_AUTH_MODE=supabase` for any Internet-facing deployment;
+Catchfly refuses to start when the mode is missing, misspelled, or lacks its required Supabase
+configuration.
 
 ## Upgrade and rollback
 
@@ -79,4 +80,3 @@ Create a replacement key in Sources, deploy it to the producer, verify a new
 trace arrives, then revoke the old key. Secrets are shown exactly once. Key
 metadata includes prefix, scope, creation, last-use, expiry and revocation
 timestamps without returning the secret.
-

@@ -246,11 +246,11 @@
 /* --- the stream ------------------------------------------------------ */
 
 .sessions-filters {
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
 }
 
 .sessions-filters .filterbar {
-  padding: 0 0 var(--space-3);
+  padding: 0 0 var(--space-4);
   background: none;
   border: 0;
   border-bottom: 1px solid var(--border);
@@ -270,8 +270,8 @@
 }
 
 .stream-day {
-  margin: var(--space-4) 0 var(--space-2);
-  padding-bottom: var(--space-1);
+  margin: var(--space-5) 0 var(--space-2);
+  padding-bottom: var(--space-2);
   border-bottom: 1px solid var(--border);
   color: var(--text-muted);
   font-family: var(--font-display);
@@ -287,41 +287,52 @@
 
 .stream-row {
   display: grid;
-  grid-template-columns: 10px 3.2rem minmax(0, 1fr) minmax(0, 11rem);
-  gap: var(--space-3);
+  grid-template-columns: 1.25rem 3.2rem minmax(0, 1fr) minmax(0, 11rem);
+  gap: var(--space-4);
   align-items: baseline;
-  padding: var(--space-2) var(--space-2) var(--space-2) 0;
-  border-bottom: 1px solid var(--border);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-2);
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 -1px 0 var(--border);
+  transition: background 120ms ease-out;
+}
+
+.stream-item:last-child .stream-row {
+  box-shadow: none;
 }
 
 .stream-row:hover {
   background: var(--surface-sunken);
+  box-shadow: none;
 }
 
 .stream-mark {
   position: relative;
-  top: 0.35em;
-  width: 8px;
-  height: 8px;
-  margin-left: 1px;
-  border-radius: 50%;
-  background: var(--mark-muted-wash);
-  box-shadow: inset 0 0 0 1px var(--border-strong);
+  top: 0.2em;
+  display: flex;
 }
 
-.stream-row.is-failed .stream-mark {
-  background: var(--regressed);
-  box-shadow: none;
+.outcome-mark-completed img,
+.outcome-mark-unknown img {
+  opacity: 0.55;
+  filter: saturate(0.7);
 }
 
-.stream-row.is-abandoned .stream-mark {
-  background: var(--surface-raised);
-  box-shadow: inset 0 0 0 2px var(--regressed);
+.outcome-mark-completed:hover img,
+.outcome-mark-unknown:hover img,
+.outcome-mark-completed:focus-visible img,
+.outcome-mark-unknown:focus-visible img {
+  opacity: 1;
 }
 
-.stream-row.is-completed .stream-mark {
-  background: none;
-  box-shadow: inset 0 0 0 1px var(--border-strong);
+.stream-mark .status-mark-tip {
+  right: auto;
+  left: calc(100% + 8px);
+  transform: translate(-4px, -50%);
+}
+
+.stream-mark .status-mark:hover .status-mark-tip,
+.stream-mark .status-mark:focus-visible .status-mark-tip {
+  transform: translate(0, -50%);
 }
 
 .stream-clock {
@@ -332,7 +343,7 @@
 .stream-body {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
 }
 
@@ -381,7 +392,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 1px;
+  gap: 3px;
   text-align: right;
 }
 

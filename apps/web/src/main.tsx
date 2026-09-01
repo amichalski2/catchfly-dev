@@ -51,9 +51,8 @@ async function boot(): Promise<void> {
     );
   });
 
-  // Failure analysis is written on demand by /api/analyze, so the page starts
-  // with none. Say so explicitly: the cluster tool waits for the registry to
-  // settle, and a registry nobody settles would leave an agent hanging.
+  // No generated analysis endpoint is part of this build. Settle the registry
+  // as unavailable so tools return deterministic evidence instead of waiting.
   setAnalysisUnavailable();
 
   if (session) {

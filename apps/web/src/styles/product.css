@@ -26,11 +26,11 @@
   width: min(680px, 100%);
 }
 
-.wizard-card::after {
+.wizard-card-intro::after {
   content: '';
   position: absolute;
-  right: -20px;
-  top: 18px;
+  right: 10px;
+  bottom: -4px;
   width: 150px;
   height: 150px;
   background: url('/brand/cards/field-clear.webp') center / contain no-repeat;
@@ -38,12 +38,22 @@
   pointer-events: none;
 }
 
-.wizard-card > .eyebrow,
-.wizard-card > h1,
-.wizard-card > .muted {
+.wizard-setup {
   position: relative;
   z-index: 1;
-  max-width: calc(100% - 130px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.wizard-setup .field {
+  width: 100%;
+}
+
+.wizard-setup .btn {
+  padding: var(--space-2) var(--space-5);
 }
 
 .install-snippet {
@@ -105,28 +115,13 @@
   font-size: var(--text-sm);
 }
 
-.wizard-pulse {
-  width: 0.55rem;
-  height: 0.55rem;
+.wizard-mark {
   flex: none;
-  border-radius: 50%;
-  background: var(--fixed);
-  animation: wizard-pulse 1.8s ease-in-out infinite;
-}
-
-@keyframes wizard-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--fixed) 35%, transparent);
-  }
-
-  50% {
-    box-shadow: 0 0 0 6px color-mix(in srgb, var(--fixed) 12%, transparent);
-  }
+  animation: flower-spin 1.25s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wizard-pulse {
+  .wizard-mark {
     animation: none;
   }
 }
@@ -211,17 +206,10 @@
   font-weight: 650;
 }
 
-.status-dot {
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 50%;
-  background: var(--text-faint);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--text-faint) 15%, transparent);
-}
-
-.status-dot.is-on {
-  background: var(--fixed);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--fixed) 16%, transparent);
+.connection-mark {
+  display: block;
+  flex: none;
+  filter: saturate(0.92);
 }
 
 .connection-access .panel-body {
@@ -380,8 +368,6 @@
 .finding-copy { flex: 1; }
 .finding-admin-key { margin-top: 16px; }
 .finding-item p { margin: 4px 0 0; }
-.finding-warning { border-left: 4px solid #b9842f; }
-.finding-critical { border-left: 4px solid #a83d48; }
 .empty-good { margin: 0; color: var(--ink-muted); }
 
 @media (max-width: 700px) {

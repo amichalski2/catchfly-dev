@@ -112,7 +112,8 @@ const catchfly = new Catchfly({
   deployment: {
     id: import.meta.env.VITE_DEPLOYMENT_ID,
     appVersionId: import.meta.env.VITE_APP_VERSION
-  }
+  },
+  onError: (error) => console.error('[Catchfly]', error)
 });
 
 instrumentWebMCP(catchfly);`,
@@ -375,12 +376,26 @@ instrumentWebMCP(catchfly);`,
     <div className="stack connection-page">
       <section className="connection-status" aria-label="Connection status">
         <div>
-          <span className={`status-dot ${productionConnected ? 'is-on' : ''}`} aria-hidden="true" />
+          <img
+            className="connection-mark"
+            src={productionConnected ? '/brand/status-active.webp' : '/brand/status-unsupported.webp'}
+            alt=""
+            width={18}
+            height={18}
+            aria-hidden="true"
+          />
           <span>Production</span>
           <strong>{productionConnected ? `Live · ${age(environmentHealth?.lastEventAt ?? null)}` : 'Waiting for data'}</strong>
         </div>
         <div>
-          <span className={`status-dot ${evalsConnected ? 'is-on' : ''}`} aria-hidden="true" />
+          <img
+            className="connection-mark"
+            src={evalsConnected ? '/brand/status-active.webp' : '/brand/status-unsupported.webp'}
+            alt=""
+            width={18}
+            height={18}
+            aria-hidden="true"
+          />
           <span>Evals</span>
           <strong>{evalsConnected ? `${runCount.toLocaleString()} runs` : 'Waiting for CI'}</strong>
         </div>

@@ -1,26 +1,22 @@
 /**
- * Failure clustering — the deterministic half of Catchfly's AI-assisted analysis.
+ * Deterministic failure clustering for Catchfly comparisons.
  *
  * The split matters, and it is deliberate. *Which* failures belong together is
  * computed here, in plain code, from the same query primitives the dashboard
  * uses: a cluster is a set of regressed cases that share a failure category, a
- * trajectory divergence and a failure reason. A model never decides membership,
- * so the clusters are reproducible, diffable and identical for every visitor.
+ * trajectory divergence and a failure reason. Cluster membership is reproducible,
+ * diffable and identical for every visitor.
  *
- * What a model contributes is prose — a label, a summary, a root-cause
- * hypothesis (`ClusterProse`). That is written once, offline, by
- * `scripts/generate-analysis.ts`, and committed as a fixture; the browser only
- * reads it. Imported runs, which have no precomputed prose, can get it from the
- * Netlify function at runtime.
+ * Optional prose can be attached by offline tooling. The application itself
+ * performs no model calls; without attached prose it reports the deterministic
+ * cluster and marks the root cause as not analyzed.
  *
  * Pure by construction — no React, no fetch, no DOM — so the same code runs in
- * the generator script, in the browser and inside the serverless function.
+ * offline tooling and in the browser.
  */
 
-import type { ClusterBrief, PromptInput } from './analysis-prompt.ts';
-export { PROMPT_VERSION } from './analysis-prompt.ts';
-import { toolsOf, type CatchflyDb } from './db.ts';
-import { compareTrajectories, expectedToolNames, findRegressions, getRun } from './queries.ts';
+import type { CatchflyDb } from './db.ts';
+import { compareTrajectories, findRegressions } from './queries.ts';
 import type { FailureCategory } from './types.ts';
 
 /** What the model writes. Everything else on a cluster is computed. */
@@ -63,7 +59,7 @@ export type FailureCluster = ClusterProse & {
   lostAttempts: number;
 };
 
-/** A cluster before a model has written anything about it. */
+/** A cluster before display copy is attached. */
 export type DerivedCluster = Omit<FailureCluster, keyof ClusterProse>;
 
 export type AnalysisEntry = {
@@ -73,14 +69,14 @@ export type AnalysisEntry = {
 };
 
 export type AnalysisProvenance = {
-  /** Model that wrote the prose, or 'none' when it was generated offline. */
+  /** Kept for file compatibility; this build always uses 'none'. */
   model: string;
   promptVersion: string;
   generatedAt: string;
-  source: 'script' | 'function';
+  source: 'script';
 };
 
-/** A set of analysed comparisons, as /api/analyze returns them. */
+/** A set of deterministically grouped comparisons. */
 export type AnalysisFile = {
   version: 1;
   provenance: AnalysisProvenance;
@@ -197,9 +193,8 @@ export function deriveClusters(
 }
 
 /**
- * Prose for a cluster no model has looked at — used by `--offline` generation
- * and as a per-cluster fallback when a model reply comes back incomplete.
- * States plainly that nothing was analyzed, rather than inventing a cause.
+ * Deterministic display copy for a cluster. It states plainly that no root-cause
+ * analysis was performed rather than inventing one.
  */
 export function fallbackProse(cluster: DerivedCluster): ClusterProse {
   const { baselineTool, candidateTool } = cluster.divergence;
@@ -217,67 +212,10 @@ export function fallbackProse(cluster: DerivedCluster): ClusterProse {
   };
 }
 
-/** Joins computed clusters with model-written prose, falling back per cluster. */
+/** Joins computed clusters with optional static prose, falling back per cluster. */
 export function applyProse(
   clusters: DerivedCluster[],
   prose: Map<string, ClusterProse>,
 ): FailureCluster[] {
   return clusters.map((cluster) => ({ ...cluster, ...(prose.get(cluster.signature) ?? fallbackProse(cluster)) }));
-}
-
-// --- model input -------------------------------------------------------
-
-/** Enough cases for the model to see the pattern, few enough to stay cheap. */
-export const SAMPLE_CASE_LIMIT = 3;
-
-/**
- * Describes one comparison for a model: the two versions, what changed in the
- * tool manifest between them, and the clusters with a few sample cases each.
- *
- * Everything here is derived from the dataset, which is what lets the
- * serverless function compose its prompt from validated facts rather than from
- * caller-supplied text.
- */
-export function buildPromptInput(
-  db: CatchflyDb,
-  baselineRunId: string,
-  candidateRunId: string,
-  clusters: DerivedCluster[],
-): PromptInput {
-  const baseline = getRun(db, baselineRunId);
-  const candidate = getRun(db, candidateRunId);
-  const baselineTools = new Set(toolsOf(db, baseline.appVersionId).map((tool) => tool.name));
-  const candidateTools = new Set(toolsOf(db, candidate.appVersionId).map((tool) => tool.name));
-
-  return {
-    baselineLabel: db.versionsById.get(baseline.appVersionId)?.label ?? baseline.appVersionId,
-    candidateLabel: db.versionsById.get(candidate.appVersionId)?.label ?? candidate.appVersionId,
-    toolManifestDelta: {
-      added: [...candidateTools].filter((tool) => !baselineTools.has(tool)),
-      removed: [...baselineTools].filter((tool) => !candidateTools.has(tool)),
-    },
-    clusters: clusters.map((cluster) => clusterBrief(db, cluster)),
-  };
-}
-
-export function clusterBrief(db: CatchflyDb, cluster: DerivedCluster): ClusterBrief {
-  return {
-    signature: cluster.signature,
-    category: cluster.category,
-    divergence: cluster.divergence,
-    failureReason: cluster.failureReason,
-    cases: cluster.cases,
-    lostAttempts: cluster.lostAttempts,
-    sampleCases: cluster.caseIds.slice(0, SAMPLE_CASE_LIMIT).flatMap((caseId) => {
-      const definition = db.casesById.get(caseId);
-      if (!definition) return [];
-      return [
-        {
-          name: definition.name,
-          prompt: definition.prompt,
-          expectedTools: expectedToolNames(definition),
-        },
-      ];
-    }),
-  };
 }

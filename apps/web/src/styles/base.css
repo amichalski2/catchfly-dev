@@ -221,26 +221,6 @@ code {
   color: var(--text-muted);
 }
 
-/* A panel the agent just changed lifts briefly, then settles. */
-@keyframes agent-touch {
-  from {
-    box-shadow: 0 0 0 3px var(--agent-tint);
-  }
-  to {
-    box-shadow: var(--shadow-sm);
-  }
-}
-
-.agent-touched {
-  animation: agent-touch 1.6s ease-out;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .agent-touched {
-    animation: none;
-  }
-}
-
 /* Reaches screen readers and nothing else — the label on a target whose meaning
    is carried by the card around it. */
 .sr-only {

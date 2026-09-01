@@ -3,7 +3,7 @@
 import { isDatabaseConfigured } from './lib/db.ts';
 import { authorizeProjectRead } from './lib/user-auth.ts';
 import { compareDeploymentRows } from './lib/session-store.ts';
-import { cachedJson, json, methodNotAllowed } from './lib/http.ts';
+import { json, methodNotAllowed, projectJson } from './lib/http.ts';
 import { projectExists } from './lib/store.ts';
 
 export const config = { path: '/api/projects/:projectId/deployment-comparison' };
@@ -25,7 +25,12 @@ export default async function handler(
     return json(400, { error: 'baselineDeploymentId and candidateDeploymentId are required.' });
   }
   try {
-    return cachedJson(200, { comparison: await compareDeploymentRows(projectId, baseline, candidate) }, 60);
+    return projectJson(
+      projectId,
+      200,
+      { comparison: await compareDeploymentRows(projectId, baseline, candidate) },
+      60,
+    );
   } catch (error) {
     if (error instanceof Error && error.message.startsWith('Unknown deployment:')) {
       return json(404, { error: error.message });

@@ -1171,7 +1171,7 @@
 }
 
 .tile-button.is-selected {
-  border-color: var(--accent, var(--text));
+  border-color: var(--border-strong);
 }
 
 .mint-warning {

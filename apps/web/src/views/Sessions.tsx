@@ -16,7 +16,7 @@ import '../styles/sessions.css';
 
 const SESSION_ACTIONS = ['set_session_filters', 'reset_session_filters', 'open_session'] as const;
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 10;
 
 const pct = (value: number) => `${(value * 100).toFixed(1)}%`;
 

@@ -56,7 +56,6 @@ export function CaseTable({
                 <button type="button" className="linkish" onClick={() => onOpenCase(row.caseId)}>
                   {row.name}
                 </button>
-                <span className="row-sub">{row.caseId}</span>
               </th>
               <td className="col-nowrap">
                 {shortVersion(row.appVersionId)}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import {
+  fetchSessions,
   fetchSourceHealth,
   provisionWorkspace,
   type ProvisionedWorkspace,
@@ -16,12 +17,20 @@ const openProject = (projectId: string, view: string) => {
   window.location.reload();
 };
 
+const parseOrigin = (value: string): string => {
+  const parsed = new URL(value.trim());
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') throw new Error();
+  return parsed.origin;
+};
+
 export function OnboardingWizard() {
   const [stage, setStage] = useState<Stage>('setup');
   const [workspace, setWorkspace] = useState<ProvisionedWorkspace | null>(null);
   const [keySeen, setKeySeen] = useState(false);
+  const [firstSessionId, setFirstSessionId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [appUrl, setAppUrl] = useState('');
+  const [additionalOrigins, setAdditionalOrigins] = useState('');
   const [proxyTelemetry, setProxyTelemetry] = useState(false);
 
   const provision = (): void => {
@@ -29,11 +38,16 @@ export function OnboardingWizard() {
     let allowedOrigins: string[] | undefined;
     if (!proxyTelemetry) {
       try {
-        const parsed = new URL(appUrl.trim());
-        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') throw new Error();
-        allowedOrigins = [parsed.origin];
+        const extras = additionalOrigins
+          .split(/[\s,]+/)
+          .map((entry) => entry.trim())
+          .filter(Boolean)
+          .map(parseOrigin);
+        allowedOrigins = [...new Set([parseOrigin(appUrl), ...extras])];
       } catch {
-        setError('Enter the full URL of your WebMCP app, for example https://app.example.com.');
+        setError(
+          'Enter full http(s) URLs, for example https://app.example.com and http://localhost:5173.',
+        );
         return;
       }
     }
@@ -52,14 +66,23 @@ export function OnboardingWizard() {
   useEffect(() => {
     if (stage !== 'waiting' || !workspace) return;
     const timer = window.setInterval(() => {
-      fetchSourceHealth(workspace.project.id)
-        .then((health) => {
+      Promise.all([
+        fetchSourceHealth(workspace.project.id),
+        fetchSessions(workspace.project.id, {}, null, 1),
+      ])
+        .then(([health, sessions]) => {
           const environments = health.environments ?? [];
-          if (environments.some((entry) => entry.lastEventAt)) {
+          if (sessions.sessions.length > 0) {
+            setFirstSessionId(sessions.sessions[0]?.id ?? null);
             setStage('connected');
             return;
           }
           if (environments.some((entry) => entry.lastBatchAt)) setKeySeen(true);
+          if (environments.some((entry) => entry.rejectedEvents > 0)) {
+            setError(
+              'Catchfly received a batch but rejected at least one event. Check the [Catchfly] error in your app console; deployment metadata and the allowed origin are the usual causes.',
+            );
+          }
         })
         .catch(() => {
           // The poll retries on its own cadence; a blip is not a failure.
@@ -71,44 +94,56 @@ export function OnboardingWizard() {
   if (stage === 'setup') {
     return (
       <div className="onboarding-shell">
-        <section className="onboarding-card wizard-card">
+        <section className="onboarding-card wizard-card wizard-card-intro">
           <img src="/brand/catchfly-lockup.png" alt="Catchfly" className="onboarding-logo" />
           <p className="eyebrow">First project</p>
           <h1>Where does your WebMCP app run?</h1>
           <p className="muted">
             Catchfly uses this origin to restrict the browser key created for your app.
           </p>
-          <label className="field field-grow">
-            <span>App URL</span>
-            <input
-              autoFocus
-              type="url"
-              value={appUrl}
-              placeholder="https://app.example.com"
-              disabled={proxyTelemetry}
-              onChange={(event) => setAppUrl(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') provision();
-              }}
-            />
-          </label>
-          <label className="signin-remember">
-            <input
-              type="checkbox"
-              checked={proxyTelemetry}
-              onChange={(event) => setProxyTelemetry(event.target.checked)}
-            />
-            My backend will proxy telemetry
-          </label>
-          {error ? <p className="import-error">{error}</p> : null}
-          <button
-            type="button"
-            className="btn"
-            disabled={!proxyTelemetry && !appUrl.trim()}
-            onClick={provision}
-          >
-            Create my workspace
-          </button>
+          <div className="wizard-setup">
+            <label className="field">
+              <span>App URL</span>
+              <input
+                autoFocus
+                type="url"
+                value={appUrl}
+                placeholder="https://app.example.com"
+                disabled={proxyTelemetry}
+                onChange={(event) => setAppUrl(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') provision();
+                }}
+              />
+            </label>
+            <label className="field">
+              <span>Other allowed origins (optional)</span>
+              <input
+                type="text"
+                value={additionalOrigins}
+                placeholder="http://localhost:5173, https://preview.example.com"
+                disabled={proxyTelemetry}
+                onChange={(event) => setAdditionalOrigins(event.target.value)}
+              />
+            </label>
+            <label className="signin-remember">
+              <input
+                type="checkbox"
+                checked={proxyTelemetry}
+                onChange={(event) => setProxyTelemetry(event.target.checked)}
+              />
+              My backend will proxy telemetry
+            </label>
+            {error ? <p className="import-error">{error}</p> : null}
+            <button
+              type="button"
+              className="btn"
+              disabled={!proxyTelemetry && !appUrl.trim()}
+              onClick={provision}
+            >
+              Create my workspace
+            </button>
+          </div>
         </section>
       </div>
     );
@@ -149,12 +184,21 @@ const catchfly = new Catchfly({
   endpoint: '${endpoint}',
   projectId: '${project.id}',
   environmentId: '${workspace.environmentId}',
-  apiKey: import.meta.env.VITE_CATCHFLY_INGEST_KEY
+  apiKey: import.meta.env.VITE_CATCHFLY_INGEST_KEY,
+  deployment: {
+    id: import.meta.env.VITE_CATCHFLY_DEPLOYMENT_ID,
+    appVersionId: import.meta.env.VITE_CATCHFLY_APP_VERSION,
+  },
+  onError: (error) => console.error('[Catchfly]', error),
 });
 
 instrumentWebMCP(catchfly);`;
 
-  const envSnippet = ingestKey ? `VITE_CATCHFLY_INGEST_KEY=${ingestKey.secret}` : '';
+  const envSnippet = ingestKey
+    ? `VITE_CATCHFLY_INGEST_KEY=${ingestKey.secret}
+VITE_CATCHFLY_DEPLOYMENT_ID=hackathon-local
+VITE_CATCHFLY_APP_VERSION=v1`
+    : '';
 
   const proxySnippet = `app.post('/catchfly-proxy/v1/projects/${project.id}/events', (req, res) =>
   forward(req, res, '${endpoint}/api/v1/projects/${project.id}/events', {
@@ -174,7 +218,16 @@ instrumentWebMCP(catchfly);`;
             actually did.
           </p>
           <div className="wizard-actions">
-            <button type="button" className="btn" onClick={() => openProject(project.id, 'sessions')}>
+            <button
+              type="button"
+              className="btn"
+              onClick={() =>
+                openProject(
+                  project.id,
+                  firstSessionId ? `sessions/${encodeURIComponent(firstSessionId)}` : 'sessions',
+                )
+              }
+            >
               View your first session
             </button>
             <button
@@ -197,9 +250,9 @@ instrumentWebMCP(catchfly);`;
         <p className="eyebrow">{project.name}</p>
         <h1>Add Catchfly to your WebMCP app</h1>
         <p className="muted">
-          Two lines of setup: configure the client, then let <code>instrumentWebMCP</code> wrap
-          every tool registered after it. Tool calls flow in automatically; task outcomes stay
-          unknown unless your app reports them with the manual session API.
+          Two lines of setup: configure the client, then let the instrumentation wrap every tool
+          registered after it. Tool calls flow in automatically; task outcomes stay unknown unless
+          your app reports them with the manual session API.
         </p>
 
         <InstallSnippet label="Install the SDK" code="npm install @catchfly/sdk" />
@@ -222,9 +275,21 @@ instrumentWebMCP(catchfly);`;
         </details>
 
         <div className="wizard-waiting">
-          <span className="wizard-pulse" aria-hidden="true" />
+          <img
+            className="wizard-mark"
+            src="/brand/status-active.webp"
+            alt=""
+            width={20}
+            height={20}
+            aria-hidden="true"
+          />
           {keySeen ? 'Key seen — waiting for the first event…' : 'Waiting for the first event…'}
         </div>
+        {error ? <p className="import-error">{error}</p> : null}
+        <p className="muted wizard-key-note">
+          Open your app in a WebMCP-capable browser and invoke one of its tools. Catchfly marks the
+          connection ready only after it can build the first complete session.
+        </p>
 
         <button
           type="button"

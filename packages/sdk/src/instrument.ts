@@ -38,8 +38,8 @@ export function instrumentWebMCP(client: Catchfly, context?: InstrumentableConte
     session ??= client.startSession({ agent: 'webmcp' });
     return session;
   };
-  const flush = (): void => {
-    void client.flush();
+  const flush = (keepalive = false): void => {
+    void client.flush({ keepalive, requeueOnFailure: !keepalive });
   };
 
   const wrap = (tool: InstrumentableTool): InstrumentableTool => ({
@@ -78,7 +78,7 @@ export function instrumentWebMCP(client: Catchfly, context?: InstrumentableConte
     // Flush the trace, but leave its outcome unknown instead of inventing a
     // task.completed event when a tab closes or navigates away.
     session = null;
-    flush();
+    flush(true);
   };
   const onVisibilityChange = (): void => {
     if (!g.document || g.document.visibilityState === 'hidden') flush();
